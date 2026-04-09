@@ -232,7 +232,12 @@ export default function Play() {
     if (!votedPlayer || !gameId || !playerId || !game) return;
     await updatePlayer(gameId, playerId, { vote: votedPlayer });
 
-    // Read latest state from store (not stale render state) to check allVoted
+    // In WS mode, the server handles phase advancement after all votes
+    if (!isLocalMode) return;
+
+    // Local mode: advance phase on the client
+    // Small delay to let store update
+    await new Promise(r => setTimeout(r, 100));
     const latestGame = useGameStore.getState().game;
     if (!latestGame || latestGame.phase !== 'VOTING') return;
 
@@ -272,12 +277,18 @@ export default function Play() {
   async function handleChameleonGuess() {
     if (selectedGuess === null || !gameId || !game) return;
     const guessedWord = topicCard.words[selectedGuess];
-    const correct = selectedGuess === secretWordIdx;
 
+    if (!isLocalMode) {
+      // WS mode: just set the guess, server handles scoring
+      await updateGame(gameId, { chameleonGuess: guessedWord });
+      return;
+    }
+
+    // Local mode: calculate scores on the client
+    const correct = selectedGuess === secretWordIdx;
     const { scores, chameleonCaught } = calculateRoundScores(game, game.chameleonId, correct);
     const result = buildRoundResult(game, secretWord, chameleonCaught, correct, scores);
 
-    // Update scores
     const updatedPlayers = { ...game.players };
     for (const [id, pts] of Object.entries(scores)) {
       if (updatedPlayers[id]) {
