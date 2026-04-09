@@ -1,0 +1,10 @@
+.results-trophy {
+  font-size: 5rem;
+  animation: trophy-bounce 1s var(--ease-spring);
+}
+
+@keyframes trophy-bounce {
+  0% { transform: scale(0) rotate(-20deg); opacity: 0; }
+  60% { transform: scale(1.2) rotate(5deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); }
+}

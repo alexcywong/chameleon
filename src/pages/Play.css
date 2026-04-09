@@ -1,0 +1,111 @@
+.play-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  padding: 0 0.25rem;
+}
+
+.play-layout {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 0.75rem;
+  align-items: start;
+  height: calc(100vh - 5rem);
+}
+
+.play-main {
+  min-width: 0;
+  overflow-y: auto;
+  max-height: calc(100vh - 5rem);
+  scrollbar-width: none;
+}
+.play-main::-webkit-scrollbar { display: none; }
+
+.play-sidebar {
+  position: sticky;
+  top: 1rem;
+}
+
+/* Compact cards inside play — tighter padding */
+.play-main > .card,
+.play-main > .mb-lg > .card,
+.play-main .card { padding: 0.85rem; margin-bottom: 0.5rem; }
+.play-main .card:last-child { margin-bottom: 0; }
+.play-main .mb-lg { margin-bottom: 0.5rem; }
+
+/* Clue list — compact bubbles */
+.clue-list { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.clue-bubble {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.78rem;
+  animation: bubble-pop 0.3s var(--ease-spring);
+}
+.clue-author { font-weight: 600; color: var(--text-muted); font-size: 0.72rem; }
+.clue-text { color: var(--text-primary); }
+
+@keyframes bubble-pop {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Scoring — compact */
+.scoring-reveal { padding: 0.25rem 0; }
+.scoring-info p { color: var(--text-secondary); margin-bottom: 0.2rem; font-size: 0.85rem; }
+.scoring-info strong { color: var(--text-primary); }
+.highlight-word { color: var(--emerald-400) !important; font-size: 1.05em; }
+
+/* Phase badge */
+.phase-badge {
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+/* Witty status bar */
+.witty-status {
+  text-align: center;
+  padding: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .play-layout {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  .play-main { max-height: none; overflow: visible; }
+  .play-sidebar { position: static; order: -1; }
+  .play-sidebar .card { padding: 0.6rem; }
+}
+
+/* Sidebar column headers (PTS / VOTES) during voting */
+.sidebar-col-headers {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0 0.25rem 0.2rem;
+  margin-bottom: 0.1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.sidebar-col-header-score,
+.sidebar-col-header-votes {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  width: 2rem;
+  text-align: center;
+}

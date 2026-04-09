@@ -1,0 +1,40 @@
+.player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.player-list-compact {
+  gap: 0.1rem;
+}
+.player-list-compact .player-item {
+  padding: 0.25rem 0.5rem;
+}
+.player-list-compact .player-avatar {
+  width: 28px;
+  height: 28px;
+  font-size: 0.7rem;
+}
+.player-list-compact .player-name {
+  font-size: 0.85rem;
+}
+.player-list-compact .player-score {
+  font-size: 0.85rem;
+}
+
+.player-item.is-votable { cursor: pointer; }
+.player-item.is-votable:hover {
+  background: var(--bg-glass-hover);
+  border: 1px solid var(--border-glow);
+  transform: translateX(2px);
+}
+.player-item.is-voted-player {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid var(--emerald-500);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.1);
+}
+
+.player-you-tag { font-size: 0.7rem; color: var(--text-muted); font-weight: 400; }
+.player-host-tag { font-size: 0.75rem; }
+.player-check { color: var(--emerald-400); font-weight: 700; font-size: 0.85rem; }
+.player-turn-indicator { color: var(--emerald-400); font-size: 0.65rem; }

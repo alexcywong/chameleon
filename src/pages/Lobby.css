@@ -1,0 +1,8 @@
+.lobby-rounds-selector {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.lobby-rounds-selector .btn {
+  flex: 1;
+}

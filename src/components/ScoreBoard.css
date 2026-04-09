@@ -1,0 +1,95 @@
+.scoreboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.scoreboard-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-glass);
+  border: 1px solid var(--border-subtle);
+  animation: fade-in 0.4s var(--ease-out) backwards;
+}
+
+.scoreboard-item.is-winner {
+  border-color: var(--amber-400);
+  background: rgba(245, 158, 11, 0.08);
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.12);
+}
+
+.scoreboard-rank {
+  font-size: 1.2rem;
+  min-width: 28px;
+  text-align: center;
+}
+
+.scoreboard-name {
+  font-weight: 500;
+  min-width: 80px;
+}
+
+.scoreboard-bar-wrapper {
+  flex: 1;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.scoreboard-bar {
+  height: 100%;
+  background: var(--gradient-primary);
+  border-radius: var(--radius-full);
+  transition: width 0.6s var(--ease-out);
+  min-width: 4px;
+}
+
+.scoreboard-score {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--amber-400);
+  min-width: 28px;
+  text-align: right;
+}
+
+/* Round history */
+.round-history-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.round-number {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: var(--text-muted);
+  min-width: 28px;
+}
+
+.round-topic {
+  font-weight: 500;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.round-word {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.round-result {
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.round-result.caught { color: var(--emerald-400); }
+.round-result.escaped { color: var(--red-400); }
