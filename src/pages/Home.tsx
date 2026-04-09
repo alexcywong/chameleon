@@ -215,6 +215,9 @@ export default function Home() {
         <p className="home-footer fade-in fade-in-delay-3">
           3–10 players · Based on the board game by Big Potato Games
         </p>
+        <p className="home-build-date fade-in fade-in-delay-4">
+          Last updated: {new Date((__BUILD_DATE__ as unknown) as string).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+        </p>
       </div>
     </div>
   );
