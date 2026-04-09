@@ -1,6 +1,6 @@
 # 🦎 Chameleon — Online Multiplayer Word Game
 
-🎮 **[Play Now](https://chameleon.alex-cywong-f37.workers.dev)**
+🎮 **[Play Now](https://chameleon.alex-cywong-f37.workers.dev)** · Deployed on Google Cloud Run
 
 A real-time multiplayer party game based on the hit board game by Big Potato Games. One player is secretly the Chameleon — they don't know the secret word and must bluff their way through!
 
