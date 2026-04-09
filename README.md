@@ -1,73 +1,61 @@
-# React + TypeScript + Vite
+# 🦎 Chameleon — Online Multiplayer Word Game
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A real-time multiplayer party game based on the hit board game by Big Potato Games. One player is secretly the Chameleon — they don't know the secret word and must bluff their way through!
 
-Currently, two official plugins are available:
+## 🎮 How to Play
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+1. **Create a game** and share the room code with friends (3–10 players)
+2. Everyone sees a topic card with 16 words — except the **Chameleon** who doesn't know the secret word
+3. Players take turns giving **one-word clues** related to the secret word
+4. **Discuss** who you think the Chameleon is
+5. **Vote** to accuse someone — if caught, the Chameleon gets one chance to guess the word!
 
-## React Compiler
+## 🚀 Quick Start
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+# Install dependencies
+npm install
+cd server && npm install && cd ..
 
-## Expanding the ESLint configuration
+# Run with multiplayer (WebSocket server + Vite)
+npm run dev
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Or run with bots only (no server needed)
+npm run dev:local
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open http://localhost:5173 to play.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🏗️ Tech Stack
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- **Frontend**: React + TypeScript + Vite + Zustand
+- **Backend**: Express + WebSocket (ws)
+- **Styling**: Vanilla CSS with glassmorphism dark theme
+- **Testing**: Playwright (83 unit tests + 10x 10-player stress tests)
+
+## 📦 Deployment
+
+### Static hosting (Cloudflare Pages, Vercel, Netlify)
+```bash
+VITE_USE_LOCAL=true npm run build
+# Deploy the dist/ folder
 ```
+> Single-device mode with bot players. No server required.
+
+### Full multiplayer (Railway, Render, Fly.io)
+```bash
+npm run build
+# Deploy server/ alongside dist/
+# Server serves both API and static files
+```
+
+## 🧪 Testing
+
+```bash
+npm test              # Run all 83 tests
+npm run test:ui       # Interactive test UI
+```
+
+---
+
+*3–10 players · Based on the board game by Big Potato Games*
