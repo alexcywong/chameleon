@@ -10,6 +10,8 @@ import CodeCard from '../components/CodeCard';
 import DiceRoll from '../components/DiceRoll';
 import PlayerList from '../components/PlayerList';
 import ScoreBoard from '../components/ScoreBoard';
+import Confetti from '../components/Confetti';
+import ChameleonEscape from '../components/ChameleonEscape';
 import './Play.css';
 
 const BOT_CLUE_WORDS = ['thing', 'stuff', 'related', 'similar', 'nearby', 'connected', 'vibes', 'close', 'kinda', 'maybe', 'hmm', 'think', 'reminds', 'like', 'almost'];
@@ -563,6 +565,10 @@ export default function Play() {
             {/* SCORING phase */}
             {game.phase === 'SCORING' && lastRound && (
               <div className="card mb-lg fade-in">
+                {/* Celebration animations */}
+                {lastRound.chameleonCaught && !lastRound.chameleonGuessedCorrectly && <Confetti />}
+                {!lastRound.chameleonCaught && <ChameleonEscape />}
+
                 <div className="scoring-reveal text-center mb-lg">
                   <h3 className="title-lg mb-sm">Round {lastRound.round} Results</h3>
 

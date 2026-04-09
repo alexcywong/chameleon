@@ -1,0 +1,93 @@
+.escape-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  animation: escape-entrance 0.6s ease-out;
+}
+
+@keyframes escape-entrance {
+  0% { opacity: 0; transform: scale(0.5); }
+  60% { transform: scale(1.1); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.escape-chameleon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  animation: escape-bounce 1.5s ease-in-out infinite;
+}
+
+@keyframes escape-bounce {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-12px) rotate(-5deg); }
+  50% { transform: translateY(0) rotate(0deg); }
+  75% { transform: translateY(-8px) rotate(5deg); }
+}
+
+.escape-emoji {
+  font-size: 3.5rem;
+  display: inline-block;
+  animation: escape-run 2s ease-in-out infinite;
+}
+
+@keyframes escape-run {
+  0%, 100% { transform: translateX(0) scaleX(1); }
+  25% { transform: translateX(15px) scaleX(-1); }
+  50% { transform: translateX(0) scaleX(1); }
+  75% { transform: translateX(-15px) scaleX(1); }
+}
+
+.escape-laugh {
+  font-size: 2rem;
+  position: absolute;
+  top: -10px;
+  right: -20px;
+  animation: laugh-shake 0.4s ease-in-out infinite;
+}
+
+@keyframes laugh-shake {
+  0%, 100% { transform: rotate(-5deg) scale(1); }
+  50% { transform: rotate(5deg) scale(1.1); }
+}
+
+.escape-smoke {
+  display: flex;
+  gap: 0.25rem;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.smoke-puff {
+  width: 12px;
+  height: 12px;
+  background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: smoke-rise 1.5s ease-out infinite;
+}
+
+@keyframes smoke-rise {
+  0% { opacity: 0.6; transform: translateY(0) scale(0.5); }
+  100% { opacity: 0; transform: translateY(-30px) scale(2); }
+}
+
+.escape-text {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--red-400);
+  letter-spacing: 0.1em;
+  animation: escape-text-pulse 1s ease-in-out infinite alternate;
+  text-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+}
+
+@keyframes escape-text-pulse {
+  0% { opacity: 0.8; transform: scale(1); }
+  100% { opacity: 1; transform: scale(1.05); }
+}
