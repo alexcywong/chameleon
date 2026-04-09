@@ -2,11 +2,11 @@ import './CodeCard.css';
 
 interface CodeCardProps {
   isChameleon: boolean;
-  coordinate?: string; // e.g. "A3"
+  coordinate?: string; // kept for compatibility but no longer displayed
   secretWord?: string;
 }
 
-export default function CodeCard({ isChameleon, coordinate, secretWord }: CodeCardProps) {
+export default function CodeCard({ isChameleon, secretWord }: CodeCardProps) {
   if (isChameleon) {
     return (
       <div className="code-card card card-chameleon reveal-card">
@@ -28,8 +28,6 @@ export default function CodeCard({ isChameleon, coordinate, secretWord }: CodeCa
     <div className="code-card card card-glow reveal-card">
       <span className="label">Your Card</span>
       <div className="code-card-content">
-        <div className="code-card-coordinate">{coordinate}</div>
-        <div className="code-card-divider" />
         <div className="code-card-secret">
           <span className="label" style={{ marginBottom: '0.25rem', display: 'block' }}>Secret Word</span>
           <span className="code-card-word">{secretWord}</span>

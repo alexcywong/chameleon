@@ -22,8 +22,6 @@ export default function TopicCard({
 }: TopicCardProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  const rowLabels = ['A', 'B', 'C', 'D'];
-
   return (
     <div className="topic-card fade-in">
       <div className="topic-card-header">
@@ -32,18 +30,9 @@ export default function TopicCard({
       </div>
 
       <div className="topic-grid-wrapper">
-        {/* Column headers */}
-        <div className="topic-grid-header">
-          <div className="grid-label-corner" />
-          {[1, 2, 3, 4].map((col) => (
-            <div key={col} className="grid-col-label">{col}</div>
-          ))}
-        </div>
-
-        {/* Grid rows */}
+        {/* Grid rows — no row/column labels */}
         {[0, 1, 2, 3].map((row) => (
           <div key={row} className="topic-grid-row">
-            <div className="grid-row-label">{rowLabels[row]}</div>
             {[0, 1, 2, 3].map((col) => {
               const index = row * 4 + col;
               const word = words[index] || '';
