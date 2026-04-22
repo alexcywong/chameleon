@@ -97,13 +97,6 @@ export function dealRound(state: GameState): Partial<GameState> {
   const diceBlue = rollDie();
   const turnOrder = shuffle(playerIds);
 
-  // House rule: It's extremely difficult if the Chameleon goes first.
-  // Ensure the Chameleon never starts the round.
-  if (turnOrder[0] === chameleonId && turnOrder.length > 1) {
-    const swapIdx = Math.floor(Math.random() * (turnOrder.length - 1)) + 1; // 1 to length-1
-    [turnOrder[0], turnOrder[swapIdx]] = [turnOrder[swapIdx], turnOrder[0]];
-  }
-
   // Reset player state for the new round
   const players = { ...state.players };
   for (const id of playerIds) {
