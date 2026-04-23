@@ -52,30 +52,11 @@ if (forceLocal) {
   _isLocalMode = true;
   console.log('💻 Running in LOCAL mode (in-memory state)');
 } else {
-  // Try WebSocket — if it fails (e.g. static hosting), fall back to local
-  try {
-    const wsUrl = `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/ws`;
-    const testWs = new WebSocket(wsUrl);
-    const connected = await new Promise<boolean>((resolve) => {
-      const timeout = setTimeout(() => { testWs.close(); resolve(false); }, 2000);
-      testWs.onopen = () => { clearTimeout(timeout); testWs.close(); resolve(true); };
-      testWs.onerror = () => { clearTimeout(timeout); resolve(false); };
-    });
-
-    if (connected) {
-      api = await loadWsApi();
-      _isLocalMode = false;
-      console.log('🔌 Connected to WebSocket server');
-    } else {
-      api = await loadLocalApi();
-      _isLocalMode = true;
-      console.log('💻 No WebSocket server found — using LOCAL mode');
-    }
-  } catch {
-    api = await loadLocalApi();
-    _isLocalMode = true;
-    console.log('💻 WebSocket unavailable — using LOCAL mode');
-  }
+  // We are deployed on Cloud Run, WebSocket server is guaranteed to be there.
+  // The ping test was causing issues on slow networks or cold starts (falling back to local mode).
+  api = await loadWsApi();
+  _isLocalMode = false;
+  console.log('🔌 Connecting to WebSocket server');
 }
 
 export const {
