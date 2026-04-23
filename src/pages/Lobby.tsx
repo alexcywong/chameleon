@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import useGameStore from '../stores/gameStore';
 import { useGameSync } from '../hooks/useGameSync';
@@ -25,6 +25,12 @@ export default function Lobby() {
   const { gameId, setGameId, playerId, setPlayerId, setPlayerName, game, reset } = useGameStore();
   const isHost = game?.hostId === playerId;
   const playerList = game ? Object.values(game.players) : [];
+  const hadGameRef = useRef(false);
+
+  // Track if we ever had a valid game state
+  useEffect(() => {
+    if (game) hadGameRef.current = true;
+  }, [game]);
 
   const [totalRounds, setTotalRounds] = useState(5);
   const [copied, setCopied] = useState(false);
@@ -55,19 +61,26 @@ export default function Lobby() {
 
   // Detect game ended by host
   useEffect(() => {
-    if (game?.phase === 'ENDED' || (gameId && game === null && playerId && !isJoinRoute)) {
-      // Small delay to ensure the user sees the state before redirect
-      const timer = setTimeout(() => {
-        reset();
-        navigate('/');
-      }, 100);
+    if (game?.phase === 'ENDED') {
+      const timer = setTimeout(() => { reset(); navigate('/'); }, 100);
+      return () => clearTimeout(timer);
+    }
+    // Only treat null game as "ended" if we previously had a valid game
+    if (gameId && game === null && playerId && !isJoinRoute && hadGameRef.current) {
+      const timer = setTimeout(() => { reset(); navigate('/'); }, 100);
       return () => clearTimeout(timer);
     }
   }, [game, gameId, playerId, isJoinRoute, reset, navigate]);
 
-  // Detect being kicked (player ID no longer in game)
+  const wasInGameRef = useRef(false);
   useEffect(() => {
-    if (game && playerId && !game.players[playerId] && !isJoinRoute) {
+    if (game && playerId && game.players[playerId]) wasInGameRef.current = true;
+  }, [game, playerId]);
+
+  // Detect being kicked (player ID no longer in game) — only in LOBBY phase
+  // Only fire if the player was previously in the game (prevents race with join message)
+  useEffect(() => {
+    if (game && game.phase === 'LOBBY' && playerId && !game.players[playerId] && !isJoinRoute && wasInGameRef.current) {
       reset();
       navigate('/');
     }

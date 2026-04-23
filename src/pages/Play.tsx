@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useGameStore from '../stores/gameStore';
 import { useGameSync } from '../hooks/useGameSync';
@@ -54,6 +54,12 @@ export default function Play() {
   const isHost = game?.hostId === playerId;
   const playerList = game ? Object.values(game.players) : [];
   const isMyTurn = game?.phase === 'CLUE_GIVING' && game?.turnOrder?.[game.currentTurnIndex] === playerId;
+  const hadGameRef = useRef(false);
+
+  // Track if we ever had a valid game state
+  useEffect(() => {
+    if (game) hadGameRef.current = true;
+  }, [game]);
 
   const [clueInput, setClueInput] = useState('');
   const [selectedGuess, setSelectedGuess] = useState<number | null>(null);
@@ -87,7 +93,13 @@ export default function Play() {
 
   // Detect game ended by host (or game deleted)
   useEffect(() => {
-    if (game?.phase === 'ENDED' || (gameId && game === null && playerId)) {
+    if (game?.phase === 'ENDED') {
+      reset();
+      navigate('/');
+      return;
+    }
+    // Only treat null game as "ended" if we previously had a valid game
+    if (gameId && game === null && playerId && hadGameRef.current) {
       reset();
       navigate('/');
     }

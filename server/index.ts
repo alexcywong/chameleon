@@ -220,21 +220,26 @@ function handleMessage(ws: WebSocket, raw: string) {
     case 'UPDATE_GAME': {
       const current = games.get(msg.gameId);
       if (!current) break;
-      // Deep merge players — but if a player was removed (kick), use the update directly
+      // Handle players merge carefully:
+      // - During LOBBY: merge players (add new joiners while keeping existing)
+      //   BUT if player count decreased, it's a kick — use update as-is
+      // - During gameplay: replace players entirely (dealRound/scoring sends complete state)
       if (msg.updates.players && current.players) {
-        const updatePlayerCount = Object.keys(msg.updates.players).length;
-        const currentPlayerCount = Object.keys(current.players).length;
-        if (updatePlayerCount < currentPlayerCount) {
-          // Player was kicked — use the update's players as-is (don't merge back removed players)
-          // no-op: msg.updates.players already has the correct set
-        } else {
-          // Normal merge (player added or updated)
-          const merged: Record<string, Player> = { ...current.players };
-          for (const [id, p] of Object.entries(msg.updates.players)) {
-            merged[id] = { ...(merged[id] || {}), ...p } as Player;
+        if (current.phase === 'LOBBY') {
+          const updatePlayerCount = Object.keys(msg.updates.players).length;
+          const currentPlayerCount = Object.keys(current.players).length;
+          if (updatePlayerCount >= currentPlayerCount) {
+            // Normal merge (player joined or state updated)
+            const merged: Record<string, Player> = { ...current.players };
+            for (const [id, p] of Object.entries(msg.updates.players)) {
+              merged[id] = { ...(merged[id] || {}), ...p } as Player;
+            }
+            msg.updates.players = merged;
           }
-          msg.updates.players = merged;
+          // else: kick — use msg.updates.players as-is (fewer players)
         }
+        // During gameplay: use the update's players directly (no merge)
+        // This is correct because dealRound and scoring send complete player objects
       }
       games.set(msg.gameId, { ...current, ...msg.updates } as GameState);
       broadcast(msg.gameId);
