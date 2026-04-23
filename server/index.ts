@@ -220,13 +220,21 @@ function handleMessage(ws: WebSocket, raw: string) {
     case 'UPDATE_GAME': {
       const current = games.get(msg.gameId);
       if (!current) break;
-      // Deep merge players
+      // Deep merge players — but if a player was removed (kick), use the update directly
       if (msg.updates.players && current.players) {
-        const merged: Record<string, Player> = { ...current.players };
-        for (const [id, p] of Object.entries(msg.updates.players)) {
-          merged[id] = { ...(merged[id] || {}), ...p } as Player;
+        const updatePlayerCount = Object.keys(msg.updates.players).length;
+        const currentPlayerCount = Object.keys(current.players).length;
+        if (updatePlayerCount < currentPlayerCount) {
+          // Player was kicked — use the update's players as-is (don't merge back removed players)
+          // no-op: msg.updates.players already has the correct set
+        } else {
+          // Normal merge (player added or updated)
+          const merged: Record<string, Player> = { ...current.players };
+          for (const [id, p] of Object.entries(msg.updates.players)) {
+            merged[id] = { ...(merged[id] || {}), ...p } as Player;
+          }
+          msg.updates.players = merged;
         }
-        msg.updates.players = merged;
       }
       games.set(msg.gameId, { ...current, ...msg.updates } as GameState);
       broadcast(msg.gameId);

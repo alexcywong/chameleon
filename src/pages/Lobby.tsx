@@ -65,6 +65,14 @@ export default function Lobby() {
     }
   }, [game, gameId, playerId, isJoinRoute, reset, navigate]);
 
+  // Detect being kicked (player ID no longer in game)
+  useEffect(() => {
+    if (game && playerId && !game.players[playerId] && !isJoinRoute) {
+      reset();
+      navigate('/');
+    }
+  }, [game, playerId, isJoinRoute, reset, navigate]);
+
   // Leave game handler
   async function handleLeaveGame() {
     if (!gameId) return;
@@ -134,6 +142,14 @@ export default function Lobby() {
     await updateGame(gameId, {
       players: { ...game.players, [bot.id]: bot },
     });
+  }
+
+  async function handleKickPlayer(kickId: string) {
+    if (!game || !gameId || !isHost) return;
+    // Remove player from the players map
+    const updatedPlayers = { ...game.players };
+    delete updatedPlayers[kickId];
+    await updateGame(gameId, { players: updatedPlayers });
   }
 
   function handleCopyCode() {
@@ -238,7 +254,7 @@ export default function Lobby() {
               <span className="badge badge-green">Ready!</span>
             )}
           </div>
-          <PlayerList players={playerList} currentPlayerId={playerId || undefined} showScores={false} />
+          <PlayerList players={playerList} currentPlayerId={playerId || undefined} showScores={false} onKick={isHost ? handleKickPlayer : undefined} />
 
           {/* Add Bot button (local mode only) */}
           {isHost && isLocalMode && playerList.length < 10 && (

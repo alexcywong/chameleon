@@ -22,6 +22,7 @@ interface PlayerListProps {
   votable?: boolean;
   votedId?: string;
   onVote?: (playerId: string) => void;
+  onKick?: (playerId: string) => void;
   voteCounts?: Record<string, number>;
   showVoteCounts?: boolean;
   showVoteCheck?: boolean; // When true, ✓ means voted; when false, ✓ means clue submitted
@@ -36,6 +37,7 @@ export default function PlayerList({
   votable = false,
   votedId,
   onVote,
+  onKick,
   voteCounts,
   showVoteCounts = false,
   showVoteCheck = false,
@@ -84,6 +86,15 @@ export default function PlayerList({
             )}
             {isCurrentTurn && (
               <span className="player-turn-indicator pulse">●</span>
+            )}
+            {onKick && !isMe && !player.isHost && (
+              <button
+                className="player-kick-btn"
+                onClick={(e) => { e.stopPropagation(); onKick(player.id); }}
+                title={`Remove ${player.name}`}
+              >
+                ✕
+              </button>
             )}
           </div>
         );

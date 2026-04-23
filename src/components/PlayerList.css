@@ -38,3 +38,22 @@
 .player-host-tag { font-size: 0.75rem; }
 .player-check { color: var(--emerald-400); font-weight: 700; font-size: 0.85rem; }
 .player-turn-indicator { color: var(--emerald-400); font-size: 0.65rem; }
+
+.player-kick-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  line-height: 1;
+  opacity: 0.4;
+  transition: all 0.15s ease;
+  margin-left: auto;
+}
+.player-kick-btn:hover {
+  opacity: 1;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
