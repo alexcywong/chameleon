@@ -91,6 +91,13 @@ export default function Play() {
     }
   }, [game?.phase, gameId, navigate]);
 
+  // Redirect to lobby when game resets (Play Again)
+  useEffect(() => {
+    if (game?.phase === 'LOBBY' && gameId) {
+      navigate(`/lobby/${gameId}`);
+    }
+  }, [game?.phase, gameId, navigate]);
+
   // Detect game ended by host (or game deleted)
   useEffect(() => {
     if (game?.phase === 'ENDED') {

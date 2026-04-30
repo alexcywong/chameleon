@@ -1,16 +1,26 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useGameStore from '../stores/gameStore';
 import { useGameSync } from '../hooks/useGameSync';
+import { updateGame } from '../gameApi';
 import ScoreBoard from '../components/ScoreBoard';
 import './Results.css';
 
 export default function Results() {
   const navigate = useNavigate();
-  const { game } = useGameStore();
+  const { game, gameId, playerId } = useGameStore();
   const playerList = game ? Object.values(game.players) : [];
   const reset = useGameStore((s) => s.reset);
+  const isHost = game?.hostId === playerId;
 
   useGameSync();
+
+  // When the game resets to LOBBY (host clicked Play Again), redirect everyone to lobby
+  useEffect(() => {
+    if (game?.phase === 'LOBBY' && gameId) {
+      navigate(`/lobby/${gameId}`);
+    }
+  }, [game?.phase, gameId, navigate]);
 
   if (!game) {
     return (
@@ -31,7 +41,47 @@ export default function Results() {
   ];
   const winMessage = wittyMessages[Math.floor(Math.random() * wittyMessages.length)];
 
-  function handlePlayAgain() {
+  async function handlePlayAgain() {
+    if (!gameId || !game) return;
+
+    if (isHost) {
+      // Reset all players: keep name/id/isHost, zero everything else
+      const resetPlayers: Record<string, typeof game.players[string]> = {};
+      for (const [id, player] of Object.entries(game.players)) {
+        resetPlayers[id] = {
+          ...player,
+          score: 0,
+          clue: '',
+          vote: '',
+          hasSubmitted: false,
+        };
+      }
+
+      // Send the game back to LOBBY with reset state
+      await updateGame(gameId, {
+        phase: 'LOBBY',
+        currentRound: 0,
+        topicIndex: 0,
+        secretWordIndex: 0,
+        diceYellow: 0,
+        diceBlue: 0,
+        chameleonId: '',
+        codeCardSetIndex: 0,
+        turnOrder: [],
+        currentTurnIndex: 0,
+        chameleonGuess: '',
+        roundHistory: [],
+        players: resetPlayers,
+      });
+      // The useEffect above will navigate to /lobby/ when phase becomes LOBBY
+    } else {
+      // Non-host: just go home
+      reset();
+      navigate('/');
+    }
+  }
+
+  function handleLeaveGame() {
     reset();
     navigate('/');
   }
@@ -56,12 +106,30 @@ export default function Results() {
         </div>
 
         <div className="text-center fade-in fade-in-delay-3">
+          {isHost ? (
+            <button
+              className="btn btn-primary btn-lg"
+              onClick={handlePlayAgain}
+              id="btn-play-again"
+            >
+              🔄 Play Again with Everyone
+            </button>
+          ) : (
+            <div className="results-waiting">
+              <div className="status-bar">
+                <span className="pulse">●</span>
+                Waiting for host to start a new game...
+              </div>
+            </div>
+          )}
+
           <button
-            className="btn btn-primary btn-lg"
-            onClick={handlePlayAgain}
-            id="btn-play-again"
+            className="btn btn-outline btn-lg mt-md"
+            onClick={handleLeaveGame}
+            id="btn-leave-game"
+            style={{ marginTop: '1rem' }}
           >
-            🎮 Play Again
+            🏠 Leave Game
           </button>
         </div>
       </div>
