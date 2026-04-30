@@ -109,3 +109,74 @@
   width: 2rem;
   text-align: center;
 }
+
+/* ── Clue Roast Styles ────────────────────────────────── */
+
+.clue-recap {
+  text-align: center;
+}
+
+.clue-recap-toggle {
+  font-size: 0.8rem !important;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+.clue-recap-toggle:hover {
+  opacity: 1;
+}
+
+.clue-roast-section {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 1rem;
+}
+
+.clue-roast-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.clue-roast-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 0.65rem 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.clue-roast-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.clue-roast-item.is-chameleon {
+  border-color: rgba(74, 222, 128, 0.3);
+  background: rgba(74, 222, 128, 0.05);
+}
+
+.clue-roast-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin-bottom: 0.25rem;
+}
+
+.clue-roast-header .clue-author {
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: var(--text-primary);
+}
+
+.clue-roast-header .clue-text {
+  font-size: 0.82rem;
+  color: var(--accent-green, #4ade80);
+  font-weight: 500;
+}
+
+.clue-roast-text {
+  font-size: 0.75rem;
+  color: var(--text-muted, rgba(255, 255, 255, 0.5));
+  font-style: italic;
+  line-height: 1.4;
+  padding-left: 0.1rem;
+}

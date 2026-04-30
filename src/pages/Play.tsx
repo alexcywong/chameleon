@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useGameStore from '../stores/gameStore';
 import { useGameSync } from '../hooks/useGameSync';
@@ -12,6 +12,7 @@ import PlayerList from '../components/PlayerList';
 import ScoreBoard from '../components/ScoreBoard';
 import Confetti from '../components/Confetti';
 import ChameleonEscape from '../components/ChameleonEscape';
+import { generateClueRoast } from '../utils/clueRoasts';
 import './Play.css';
 
 const BOT_CLUE_WORDS = ['thing', 'stuff', 'related', 'similar', 'nearby', 'connected', 'vibes', 'close', 'kinda', 'maybe', 'hmm', 'think', 'reminds', 'like', 'almost'];
@@ -65,6 +66,25 @@ export default function Play() {
   const [selectedGuess, setSelectedGuess] = useState<number | null>(null);
   const [votedPlayer, setVotedPlayer] = useState('');
   const [showDice, setShowDice] = useState(true);
+  const [showRoasts, setShowRoasts] = useState(false);
+
+  // Generate roasts once per round (memoized so they don't shuffle on re-renders)
+  const clueRoasts = useMemo(() => {
+    if (!game || !game.turnOrder || game.phase === 'CLUE_GIVING') return {} as Record<string, string>;
+    const topic = getTopicCard(game.topicIndex);
+    const secretIdx = getSecretWordIndex(game.codeCardSetIndex, game.diceYellow, game.diceBlue);
+    const word = topic.words[secretIdx];
+    const allClues = game.turnOrder.map(pid => game.players[pid]?.clue || '');
+    const roasts: Record<string, string> = {};
+    for (const pid of game.turnOrder) {
+      const p = game.players[pid];
+      if (p?.clue) {
+        roasts[pid] = generateClueRoast(p.name, p.clue, topic.topic, word, allClues);
+      }
+    }
+    return roasts;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [game?.currentRound, game?.phase === 'DISCUSSION' || game?.phase === 'VOTING' || game?.phase === 'SCORING' ? 'show' : 'hide']);
 
   useGameSync();
 
@@ -525,6 +545,35 @@ export default function Play() {
                 <h3 className="title-md mb-md">🗳️ Cast Your Vote</h3>
                 <p className="subtitle mb-md">Who do you think is the Chameleon?</p>
 
+                {/* Clue recap during voting */}
+                <div className="clue-recap mb-lg">
+                  <button
+                    className="btn btn-ghost btn-sm clue-recap-toggle"
+                    onClick={() => setShowRoasts(!showRoasts)}
+                  >
+                    {showRoasts ? '🔽 Hide Clues' : '🔎 Review Clues'}
+                  </button>
+                  {showRoasts && (
+                    <div className="clue-roast-list mt-sm">
+                      {game.turnOrder.map((pid) => {
+                        const p = game.players[pid];
+                        if (!p) return null;
+                        return (
+                          <div key={pid} className="clue-roast-item fade-in">
+                            <div className="clue-roast-header">
+                              <span className="clue-author">{p.name}:</span>
+                              <span className="clue-text">"{p.clue}"</span>
+                            </div>
+                            <div className="clue-roast-text">
+                              {clueRoasts[pid]}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
                 <PlayerList
                   players={playerList}
                   currentPlayerId={playerId}
@@ -602,6 +651,33 @@ export default function Play() {
                           : <span className="badge badge-green" style={{ marginLeft: 8 }}>Caught! 🎯</span>
                         : <span className="badge badge-red" style={{ marginLeft: 8 }}>Escaped! 💨</span>}
                     </p>
+                  </div>
+                </div>
+
+                {/* Clue Roasts Reveal */}
+                <div className="clue-roast-section mb-lg">
+                  <h4 className="title-sm mb-sm">🔥 Clue Roasts</h4>
+                  <div className="clue-roast-list">
+                    {game.turnOrder.map((pid, i) => {
+                      const p = game.players[pid];
+                      if (!p) return null;
+                      const isCham = pid === game.chameleonId;
+                      return (
+                        <div
+                          key={pid}
+                          className={`clue-roast-item fade-in ${isCham ? 'is-chameleon' : ''}`}
+                          style={{ animationDelay: `${i * 0.1}s` }}
+                        >
+                          <div className="clue-roast-header">
+                            <span className="clue-author">{p.name}{isCham ? ' 🦎' : ''}:</span>
+                            <span className="clue-text">"{p.clue}"</span>
+                          </div>
+                          <div className="clue-roast-text">
+                            {clueRoasts[pid]}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
