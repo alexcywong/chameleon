@@ -42,12 +42,16 @@ export default function Lobby() {
   const [joinError, setJoinError] = useState('');
   const [joinLoading, setJoinLoading] = useState(false);
 
-  // Set game ID from URL if not already set
+  // Set game ID from URL — always override stale session state
   useEffect(() => {
-    if (roomCode && !gameId) {
+    if (roomCode && gameId !== roomCode) {
+      // If arriving on a join route for a different game, clear stale player session
+      if (isJoinRoute && gameId && gameId !== roomCode) {
+        setPlayerId(null as unknown as string);
+      }
       setGameId(roomCode);
     }
-  }, [roomCode, gameId, setGameId]);
+  }, [roomCode, gameId, isJoinRoute, setGameId, setPlayerId]);
 
   // Subscribe to game updates
   useGameSync();
@@ -103,12 +107,14 @@ export default function Lobby() {
     setJoinError('');
 
     try {
+      console.log(`🚪 Joining game ${roomCode} as "${joinName.trim()}"...`);
       const existingGame = await fetchGame(roomCode);
       if (!existingGame) {
-        setJoinError('Game not found. It may have expired.');
+        setJoinError('Game not found. Check the room code and try again.');
         setJoinLoading(false);
         return;
       }
+      console.log(`📋 Game found: ${Object.keys(existingGame.players).length} players, phase: ${existingGame.phase}`);
       if (existingGame.phase !== 'LOBBY') {
         setJoinError('This game has already started!');
         setJoinLoading(false);
@@ -124,6 +130,7 @@ export default function Lobby() {
       await updateGame(roomCode, {
         players: { ...existingGame.players, [player.id]: player },
       });
+      console.log(`✅ Sent join update for player ${player.name} (${player.id})`);
 
       setGameId(roomCode);
       setPlayerId(player.id);
@@ -132,8 +139,8 @@ export default function Lobby() {
       // Switch to lobby view (no longer on join route functionally)
       navigate(`/lobby/${roomCode}`, { replace: true });
     } catch (err) {
-      console.error(err);
-      setJoinError('Failed to join game.');
+      console.error('Join error:', err);
+      setJoinError('Failed to join game. Please try again.');
     } finally {
       setJoinLoading(false);
     }

@@ -219,7 +219,10 @@ function handleMessage(ws: WebSocket, raw: string) {
     }
     case 'UPDATE_GAME': {
       const current = games.get(msg.gameId);
-      if (!current) break;
+      if (!current) {
+        console.log(`⚠️ UPDATE_GAME for unknown game ${msg.gameId}`);
+        break;
+      }
       // Handle players merge carefully:
       // - During LOBBY: merge players (add new joiners while keeping existing)
       //   BUT if player count decreased, it's a kick — use update as-is
@@ -235,6 +238,14 @@ function handleMessage(ws: WebSocket, raw: string) {
               merged[id] = { ...(merged[id] || {}), ...p } as Player;
             }
             msg.updates.players = merged;
+            const finalCount = Object.keys(merged).length;
+            if (finalCount !== currentPlayerCount) {
+              const names = Object.values(merged).map((p: Player) => p.name).join(', ');
+              console.log(`👤 Game ${msg.gameId}: ${currentPlayerCount} → ${finalCount} players [${names}]`);
+            }
+          } else {
+            const names = Object.values(msg.updates.players).map((p: Player) => p.name).join(', ');
+            console.log(`🚫 Game ${msg.gameId}: kick ${currentPlayerCount} → ${updatePlayerCount} [${names}]`);
           }
           // else: kick — use msg.updates.players as-is (fewer players)
         }

@@ -78,12 +78,27 @@ export async function createGameWs(gameId: string, state: GameState) {
 
 export async function getGameWs(gameId: string): Promise<GameState | null> {
   return new Promise((resolve) => {
+    let resolved = false;
     const handler = (state: GameState | null) => {
+      if (resolved) return;
+      resolved = true;
+      clearTimeout(timer);
       resolve(state);
       const cbs = gameCallbacks.get(gameId);
       cbs?.delete(handler);
       if (cbs?.size === 0) gameCallbacks.delete(gameId);
     };
+    // Timeout after 10s to prevent hanging
+    const timer = setTimeout(() => {
+      if (!resolved) {
+        resolved = true;
+        console.warn('⏱️ getGameWs timed out for', gameId);
+        const cbs = gameCallbacks.get(gameId);
+        cbs?.delete(handler);
+        if (cbs?.size === 0) gameCallbacks.delete(gameId);
+        resolve(null);
+      }
+    }, 10000);
     if (!gameCallbacks.has(gameId)) gameCallbacks.set(gameId, new Set());
     gameCallbacks.get(gameId)!.add(handler);
     send({ type: 'GET_GAME', gameId });
