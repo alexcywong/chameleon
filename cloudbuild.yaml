@@ -19,7 +19,7 @@ steps:
 substitutions:
   _AR_HOSTNAME: europe-west1-docker.pkg.dev
   _DEPLOY_REGION: europe-west1
-  _SERVICE_NAME: chameleon
+  _SERVICE_NAME: kiwi
 
 options:
   logging: CLOUD_LOGGING_ONLY
