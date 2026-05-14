@@ -68,7 +68,7 @@ export default function Results() {
           <div className="app-bg" />
           <div className="container container-narrow text-center">
             <div className="mb-lg fade-in">
-              <img src="/images/kiwi-sweat.jpg" alt="Disconnected" className="kiwi-icon" style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover' }} />
+              <img src="/images/kiwi-sweat.png" alt="Disconnected" className="kiwi-icon" style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover' }} />
               <h1 className="title-lg mb-sm">Connection Lost</h1>
               <p className="subtitle">
                 The game session could not be recovered. This can happen if the game was ended or you were disconnected for too long.

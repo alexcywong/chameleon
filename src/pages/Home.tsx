@@ -99,7 +99,8 @@ export default function Home() {
       <div className="container container-narrow text-center">
         {/* Logo */}
         <div className="home-logo fade-in">
-          <img src="/images/kiwi-main.jpg" alt="Kiwi in Disguise" className="home-kiwi-main-img" />
+          <img src="/images/kiwi-suspicious.png" alt="Kiwi Character" className="home-kiwi-character-img" />
+          <img src="/images/kiwi-logo.png" alt="Kiwi in Disguise" className="home-kiwi-main-img" />
           <h1 className="sr-only" style={{ display: 'none' }}>Kiwi in Disguise</h1>
           <p className="subtitle">Blend in. Don't get caught.</p>
         </div>

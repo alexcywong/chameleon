@@ -12,7 +12,7 @@ export default function CodeCard({ isKiwi, secretWord }: CodeCardProps) {
       <div className="code-card card card-kiwi reveal-card">
         <span className="label" style={{ color: 'var(--red-400)' }}>Your Card</span>
         <div className="code-card-kiwi-content">
-          <img src="/images/kiwi-shh.jpg" alt="Kiwi in Disguise" className="kiwi-emoji" style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover' }} />
+          <img src="/images/kiwi-shh.png" alt="Kiwi in Disguise" className="kiwi-emoji" style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover' }} />
           <h3 className="code-card-title" style={{ color: 'var(--red-400)' }}>
             YOU ARE THE<br />KIWI
           </h3>

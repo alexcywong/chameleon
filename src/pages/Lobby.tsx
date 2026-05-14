@@ -214,7 +214,7 @@ export default function Lobby() {
         <div className="app-bg" />
         <div className="container container-narrow text-center">
           <div className="mb-lg fade-in">
-            <img src="/images/kiwi-shh.jpg" alt="Kiwi in Disguise" className="kiwi-icon" style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover' }} />
+            <img src="/images/kiwi-shh.png" alt="Kiwi in Disguise" className="kiwi-icon" style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover' }} />
             <h1 className="title-lg">Join Game</h1>
             <p className="subtitle">Room: <strong>{roomCode}</strong></p>
           </div>
@@ -271,7 +271,7 @@ export default function Lobby() {
 
       <div className="container container-narrow">
         <div className="text-center mb-lg fade-in">
-          <img src="/images/kiwi-shh.jpg" alt="Kiwi in Disguise" className="kiwi-icon" style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover' }} />
+          <img src="/images/kiwi-shh.png" alt="Kiwi in Disguise" className="kiwi-icon" style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover' }} />
           <h1 className="title-lg">Waiting Room</h1>
         </div>
 

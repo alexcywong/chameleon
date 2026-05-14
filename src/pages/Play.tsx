@@ -405,7 +405,7 @@ export default function Play() {
         {/* Header */}
         <div className="play-header fade-in">
           <div className="flex items-center gap-sm">
-            <img src="/images/kiwi-suspicious.jpg" alt="Kiwi in Disguise" className="kiwi-icon" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
+            <img src="/images/kiwi-suspicious.png" alt="Kiwi in Disguise" className="kiwi-icon" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
             <span className="label">Round {game.currentRound} / {game.totalRounds}</span>
           </div>
           <div className="flex items-center gap-sm">
