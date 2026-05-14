@@ -33,11 +33,11 @@ async function playToResults(page: Page): Promise<void> {
       if (await page.locator('.word-cell.is-guess-option').isVisible({ timeout: 200 }).catch(() => false)) break;
     }
 
-    // CHAMELEON_GUESS (may appear before voting if we're the chameleon and clue phase ended)
+    // KIWI_GUESS (may appear before voting if we're the kiwi and clue phase ended)
     if (await page.locator('.word-cell.is-guess-option').isVisible({ timeout: 500 }).catch(() => false)) {
       await page.locator('.word-cell.is-guess-option').first().click();
       await page.waitForTimeout(400);
-      const guessBtn = page.locator('#btn-chameleon-guess');
+      const guessBtn = page.locator('#btn-kiwi-guess');
       if (await guessBtn.isVisible({ timeout: 500 }).catch(() => false)) {
         await guessBtn.click();
       }
@@ -63,16 +63,16 @@ async function playToResults(page: Page): Promise<void> {
       }
     }
 
-    // Wait for post-vote phases (CHAMELEON_GUESS or SCORING)
+    // Wait for post-vote phases (KIWI_GUESS or SCORING)
     for (let i = 0; i < 10; i++) {
       await page.waitForTimeout(800);
 
-      // Handle chameleon guess if we're the chameleon
+      // Handle kiwi guess if we're the kiwi
       const guessOption = page.locator('.word-cell.is-guess-option').first();
       if (await guessOption.isVisible({ timeout: 200 }).catch(() => false)) {
         await guessOption.click();
         await page.waitForTimeout(400);
-        const guessBtn = page.locator('#btn-chameleon-guess');
+        const guessBtn = page.locator('#btn-kiwi-guess');
         if (await guessBtn.isVisible({ timeout: 500 }).catch(() => false)) {
           await guessBtn.click();
         }

@@ -63,12 +63,12 @@ export function createGameState(
     secretWordIndex: 0,
     diceYellow: 1,
     diceBlue: 1,
-    chameleonId: '',
+    kiwiId: '',
     codeCardSetIndex: Math.floor(Math.random() * getCodeCardCount()),
     players: { [hostPlayer.id]: hostPlayer },
     turnOrder: [],
     currentTurnIndex: 0,
-    chameleonGuess: '',
+    kiwiGuess: '',
     roundHistory: [],
     createdAt: Date.now(),
   };
@@ -87,11 +87,11 @@ export function shuffle<T>(arr: T[]): T[] {
 }
 
 /**
- * Deal cards: assign one player as the chameleon, set dice, topic, and turn order.
+ * Deal cards: assign one player as the kiwi, set dice, topic, and turn order.
  */
 export function dealRound(state: GameState): Partial<GameState> {
   const playerIds = Object.keys(state.players);
-  const chameleonId = playerIds[Math.floor(Math.random() * playerIds.length)];
+  const kiwiId = playerIds[Math.floor(Math.random() * playerIds.length)];
   const topicIndex = randomTopicIndex();
   const diceYellow = rollDie();
   const diceBlue = rollDie();
@@ -115,11 +115,11 @@ export function dealRound(state: GameState): Partial<GameState> {
     secretWordIndex: 0, // Will be computed per-player via code card
     diceYellow,
     diceBlue,
-    chameleonId,
+    kiwiId,
     codeCardSetIndex: Math.floor(Math.random() * getCodeCardCount()),
     turnOrder,
     currentTurnIndex: 0,
-    chameleonGuess: '',
+    kiwiGuess: '',
     players,
   };
 }
@@ -173,30 +173,30 @@ export function tallyVotes(state: GameState): { winnerId: string | null; counts:
 export function calculateRoundScores(
   state: GameState,
   accusedId: string,
-  chameleonGuessedCorrectly: boolean
-): { scores: Record<string, number>; chameleonCaught: boolean } {
+  kiwiGuessedCorrectly: boolean
+): { scores: Record<string, number>; kiwiCaught: boolean } {
   const scores: Record<string, number> = {};
   const playerIds = Object.keys(state.players);
-  const chameleonCaught = accusedId === state.chameleonId;
+  const kiwiCaught = accusedId === state.kiwiId;
 
-  if (!chameleonCaught) {
-    // Chameleon escapes
+  if (!kiwiCaught) {
+    // Kiwi escapes
     for (const id of playerIds) {
-      scores[id] = id === state.chameleonId ? 2 : 0;
+      scores[id] = id === state.kiwiId ? 2 : 0;
     }
-  } else if (chameleonGuessedCorrectly) {
-    // Chameleon caught but guessed the word
+  } else if (kiwiGuessedCorrectly) {
+    // Kiwi caught but guessed the word
     for (const id of playerIds) {
-      scores[id] = id === state.chameleonId ? 1 : 0;
+      scores[id] = id === state.kiwiId ? 1 : 0;
     }
   } else {
-    // Chameleon caught and failed to guess
+    // Kiwi caught and failed to guess
     for (const id of playerIds) {
-      scores[id] = id === state.chameleonId ? 0 : 2;
+      scores[id] = id === state.kiwiId ? 0 : 2;
     }
   }
 
-  return { scores, chameleonCaught };
+  return { scores, kiwiCaught };
 }
 
 /**
@@ -205,20 +205,20 @@ export function calculateRoundScores(
 export function buildRoundResult(
   state: GameState,
   secretWord: string,
-  chameleonCaught: boolean,
-  chameleonGuessedCorrectly: boolean,
+  kiwiCaught: boolean,
+  kiwiGuessedCorrectly: boolean,
   scores: Record<string, number>,
   guessedWord?: string
 ): RoundResult {
-  const chameleon = state.players[state.chameleonId];
+  const kiwi = state.players[state.kiwiId];
   return {
     round: state.currentRound,
     topic: topicCards[state.topicIndex]?.topic || 'Unknown',
     secretWord,
-    chameleonId: state.chameleonId,
-    chameleonName: chameleon?.name || 'Unknown',
-    chameleonCaught,
-    chameleonGuessedCorrectly,
+    kiwiId: state.kiwiId,
+    kiwiName: kiwi?.name || 'Unknown',
+    kiwiCaught,
+    kiwiGuessedCorrectly,
     guessedWord,
     scores,
   };

@@ -3,12 +3,12 @@ import { test, expect, Page } from '@playwright/test';
 /**
  * 20 core tests covering:
  * - Topic card rendering with new specific categories
- * - Code card display (chameleon vs non-chameleon)
+ * - Code card display (kiwi vs non-kiwi)
  * - Clue submission flow
  * - Discussion phase behaviour
  * - Voting mechanics
- * - Chameleon guess UI
- * - Scoring display (secret word, guessed word, chameleon reveal)
+ * - Kiwi guess UI
+ * - Scoring display (secret word, guessed word, kiwi reveal)
  * - Round history correctness (no "Unknown")
  * - ScoreBoard component
  * - Edge cases (empty clue, double submit, round selector)
@@ -66,7 +66,7 @@ async function advanceToVoting(page: Page): Promise<void> {
   const deadline = Date.now() + 20000;
   while (Date.now() < deadline) {
     const phase = await getPhaseText(page);
-    if (phase === 'VOTING' || phase === 'SCORING' || phase === 'CHAMELEON GUESS') return;
+    if (phase === 'VOTING' || phase === 'SCORING' || phase === 'KIWI GUESS') return;
     await page.waitForTimeout(400);
   }
 }
@@ -78,7 +78,7 @@ async function advanceToVoting(page: Page): Promise<void> {
  * Uses the proven approach from voting-workflow.spec.ts:
  * 1. Cast our vote
  * 2. Wait for phase to leave VOTING (via waitForFunction on badge)
- * 3. Handle CHAMELEON GUESS if we're the chameleon
+ * 3. Handle KIWI GUESS if we're the kiwi
  * 4. Confirm SCORING phase reached
  */
 async function playRoundToScoring(page: Page): Promise<void> {
@@ -116,13 +116,13 @@ async function playRoundToScoring(page: Page): Promise<void> {
 
   const currentPhase = await getPhaseText(page);
 
-  // Handle CHAMELEON GUESS if we're the chameleon
-  if (currentPhase === 'CHAMELEON GUESS') {
+  // Handle KIWI GUESS if we're the kiwi
+  if (currentPhase === 'KIWI GUESS') {
     const guessOptions = page.locator('.is-guess-option');
     if (await guessOptions.first().isVisible({ timeout: 3000 }).catch(() => false)) {
       await guessOptions.first().click();
       await page.waitForTimeout(300);
-      const guessBtn = page.locator('#btn-chameleon-guess');
+      const guessBtn = page.locator('#btn-kiwi-guess');
       if (await guessBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
         await guessBtn.click();
       }
@@ -160,24 +160,24 @@ test.describe('Core Tests', () => {
     await expect(wordCells).toHaveCount(16);
   });
 
-  // 3. Code card shows either chameleon or secret word
-  test('3: code card shows chameleon card OR secret word', async ({ page }) => {
+  // 3. Code card shows either kiwi or secret word
+  test('3: code card shows kiwi card OR secret word', async ({ page }) => {
     await createAndStartGame(page);
     const codeCard = page.locator('.code-card');
     await expect(codeCard).toBeVisible();
     const text = await codeCard.textContent();
-    const isChameleon = text!.includes('CHAMELEON');
+    const isKiwi = text!.includes('KIWI');
     const hasSecretWord = text!.includes('Secret Word');
-    expect(isChameleon || hasSecretWord).toBe(true);
+    expect(isKiwi || hasSecretWord).toBe(true);
   });
 
-  // 4. Non-chameleon player sees secret word highlighted on topic card
-  test('4: non-chameleon sees secret word highlighted', async ({ page }) => {
+  // 4. Non-kiwi player sees secret word highlighted on topic card
+  test('4: non-kiwi sees secret word highlighted', async ({ page }) => {
     await createAndStartGame(page);
     const codeCard = page.locator('.code-card');
     const codeText = await codeCard.textContent();
 
-    if (!codeText?.includes('CHAMELEON')) {
+    if (!codeText?.includes('KIWI')) {
       const secretCell = page.locator('.word-cell.is-secret');
       await expect(secretCell).toHaveCount(1);
     }
@@ -308,8 +308,8 @@ test.describe('Core Tests', () => {
     }
   });
 
-  // 13. Scoring screen reveals the chameleon's name
-  test('13: scoring screen reveals chameleon identity', async ({ page }) => {
+  // 13. Scoring screen reveals the kiwi's name
+  test('13: scoring screen reveals kiwi identity', async ({ page }) => {
     test.setTimeout(90_000);
     await createAndStartGame(page);
     await playRoundToScoring(page);
@@ -317,9 +317,9 @@ test.describe('Core Tests', () => {
     if (phase === 'SCORING') {
       const scoringInfo = page.locator('.scoring-info');
       const text = await scoringInfo.textContent();
-      expect(text).toContain('Chameleon:');
-      const hasChameleonName = text!.includes('Tester') || text!.includes('Riley') || text!.includes('Jordan');
-      expect(hasChameleonName).toBe(true);
+      expect(text).toContain('Kiwi:');
+      const hasKiwiName = text!.includes('Tester') || text!.includes('Riley') || text!.includes('Jordan');
+      expect(hasKiwiName).toBe(true);
     }
   });
 

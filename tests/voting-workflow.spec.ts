@@ -2,8 +2,8 @@ import { test, expect, Page } from '@playwright/test';
 
 /**
  * Tests for the post-voting workflow:
- * 1. After voting, game advances to either CHAMELEON_GUESS or SCORING
- * 2. Scoring screen shows correct info (topic, secret word, chameleon)
+ * 1. After voting, game advances to either KIWI_GUESS or SCORING
+ * 2. Scoring screen shows correct info (topic, secret word, kiwi)
  * 3. Next round works
  * 4. Full multi-round game completes through all rounds to results
  */
@@ -73,7 +73,7 @@ async function reachVotingPhase(page: Page): Promise<void> {
   const deadline = Date.now() + 20000;
   while (Date.now() < deadline) {
     const phase = await getPhase(page);
-    if (phase === 'VOTING' || phase === 'SCORING' || phase === 'CHAMELEON GUESS') return;
+    if (phase === 'VOTING' || phase === 'SCORING' || phase === 'KIWI GUESS') return;
     await page.waitForTimeout(400);
   }
 }
@@ -103,7 +103,7 @@ async function castVote(page: Page): Promise<void> {
       return;
     }
     const phase = await getPhase(page);
-    if (phase === 'SCORING' || phase === 'CHAMELEON GUESS' || phase === 'CLUE GIVING') return;
+    if (phase === 'SCORING' || phase === 'KIWI GUESS' || phase === 'CLUE GIVING') return;
     await page.waitForTimeout(500);
   }
 }
@@ -125,12 +125,12 @@ async function playRoundToScoring(page: Page): Promise<void> {
 
   let phase = await getPhase(page);
 
-  if (phase === 'CHAMELEON GUESS') {
-    // If we're the chameleon, select a word and guess
+  if (phase === 'KIWI GUESS') {
+    // If we're the kiwi, select a word and guess
     const guessOptions = page.locator('.is-guess-option');
     if (await guessOptions.first().isVisible({ timeout: 3000 }).catch(() => false)) {
       await guessOptions.first().click();
-      await page.locator('#btn-chameleon-guess').click({ timeout: 3000 });
+      await page.locator('#btn-kiwi-guess').click({ timeout: 3000 });
     }
     await waitForPhase(page, 'SCORING', 20000);
     phase = 'SCORING';
@@ -147,7 +147,7 @@ test.describe('Voting → Scoring Workflow', () => {
     await playRoundToScoring(page);
   });
 
-  test('scoring screen shows topic, secret word, and chameleon', async ({ page }) => {
+  test('scoring screen shows topic, secret word, and kiwi', async ({ page }) => {
     await startGameWithBots(page);
     await playRoundToScoring(page);
 
@@ -156,9 +156,9 @@ test.describe('Voting → Scoring Workflow', () => {
       await expect(page.locator('.scoring-reveal')).toBeVisible({ timeout: 5000 });
       await expect(page.locator('text=Topic:')).toBeVisible();
       await expect(page.locator('text=Secret Word:')).toBeVisible();
-      await expect(page.locator('text=Chameleon:')).toBeVisible();
+      await expect(page.locator('text=Kiwi:')).toBeVisible();
     }
-    // If game auto-advanced past SCORING (chameleon escaped + bots dealt next round), that's fine
+    // If game auto-advanced past SCORING (kiwi escaped + bots dealt next round), that's fine
   });
 
   test('scoring shows outcome badge', async ({ page }) => {

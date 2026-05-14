@@ -1,10 +1,10 @@
 import { test, expect, Browser, BrowserContext, Page } from '@playwright/test';
 
 /**
- * Targeted test for the "chameleon escapes" and "chameleon caught" scenarios.
+ * Targeted test for the "kiwi escapes" and "kiwi caught" scenarios.
  *
  * Tests that ALL 10 players remain in the game through the full round,
- * regardless of whether the chameleon was caught or escaped.
+ * regardless of whether the kiwi was caught or escaped.
  *
  * Uses the same proven helpers from multiplayer10p.spec.ts.
  */
@@ -125,12 +125,12 @@ async function voteRandom(player: PlayerSession): Promise<void> {
   }
 }
 
-async function handleChameleonGuess(player: PlayerSession): Promise<void> {
+async function handleKiwiGuess(player: PlayerSession): Promise<void> {
   const guessOption = player.page.locator('.word-cell.is-guess-option').first();
   if (await guessOption.isVisible({ timeout: 1000 }).catch(() => false)) {
     await guessOption.click();
     await player.page.waitForTimeout(300);
-    const guessBtn = player.page.locator('#btn-chameleon-guess');
+    const guessBtn = player.page.locator('#btn-kiwi-guess');
     if (await guessBtn.isVisible({ timeout: 500 }).catch(() => false)) {
       await guessBtn.click();
     }
@@ -154,17 +154,17 @@ async function playOneRound(players: PlayerSession[], voteTarget?: string): Prom
     await Promise.all(players.map(p => voteRandom(p)));
   }
 
-  // 4. Handle chameleon guess if it appears
+  // 4. Handle kiwi guess if it appears
   await host.page.waitForTimeout(1500);
-  await Promise.all(players.map(p => handleChameleonGuess(p)));
+  await Promise.all(players.map(p => handleKiwiGuess(p)));
 
   // 5. Wait for scoring
   await host.page.waitForTimeout(2000);
 }
 
-test.describe('Chameleon Escape Scoring Tests', () => {
+test.describe('Kiwi Escape Scoring Tests', () => {
 
-  test('10 players: vote for non-chameleon (Host) → all stay in game', async ({ browser }) => {
+  test('10 players: vote for non-kiwi (Host) → all stay in game', async ({ browser }) => {
     test.setTimeout(180_000);
     const players: PlayerSession[] = [];
 
@@ -197,7 +197,7 @@ test.describe('Chameleon Escape Scoring Tests', () => {
       ));
       console.log(`  All players on play page`);
 
-      // Play round 1 — force vote for "Host" (likely not the chameleon: 1/10 chance)
+      // Play round 1 — force vote for "Host" (likely not the kiwi: 1/10 chance)
       await playOneRound(players, 'Host');
       console.log(`  Round 1 complete`);
 

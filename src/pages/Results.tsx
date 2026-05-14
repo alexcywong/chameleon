@@ -68,7 +68,7 @@ export default function Results() {
           <div className="app-bg" />
           <div className="container container-narrow text-center">
             <div className="mb-lg fade-in">
-              <span className="chameleon-icon">🦎</span>
+              <img src="/images/kiwi-sweat.jpg" alt="Disconnected" className="kiwi-icon" style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover' }} />
               <h1 className="title-lg mb-sm">Connection Lost</h1>
               <p className="subtitle">
                 The game session could not be recovered. This can happen if the game was ended or you were disconnected for too long.
@@ -98,9 +98,9 @@ export default function Results() {
   const winner = sorted[0];
   const wittyMessages = [
     `${winner?.name} absolutely crushed it! 🎉`,
-    `All hail ${winner?.name}, the Chameleon hunter! 👑`,
+    `All hail ${winner?.name}, the Kiwi hunter! 👑`,
     `${winner?.name} saw through every disguise! 🔍`,
-    `${winner?.name} blended in AND stood out! 🦎`,
+    `${winner?.name} blended in AND stood out! 🥝`,
   ];
   const winMessage = useMemo(() => wittyMessages[Math.floor(Math.random() * wittyMessages.length)], [winner?.name]);
 
@@ -128,11 +128,11 @@ export default function Results() {
         secretWordIndex: 0,
         diceYellow: 0,
         diceBlue: 0,
-        chameleonId: '',
+        kiwiId: '',
         codeCardSetIndex: 0,
         turnOrder: [],
         currentTurnIndex: 0,
-        chameleonGuess: '',
+        kiwiGuess: '',
         roundHistory: [],
         players: resetPlayers,
       });

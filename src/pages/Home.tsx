@@ -18,7 +18,7 @@ export default function Home() {
   const placeholders = [
     'Enter your name, legend...',
     'Who dares play?',
-    'Name yourself, chameleon...',
+    'Name yourself, kiwi...',
     'The spy needs a name...',
   ];
   const placeholder = placeholders[Math.floor(Math.random() * placeholders.length)];
@@ -99,8 +99,8 @@ export default function Home() {
       <div className="container container-narrow text-center">
         {/* Logo */}
         <div className="home-logo fade-in">
-          <span className="home-chameleon-icon">🦎</span>
-          <h1 className="title-xl">Chameleon</h1>
+          <img src="/images/kiwi-main.jpg" alt="Kiwi in Disguise" className="home-kiwi-main-img" />
+          <h1 className="sr-only" style={{ display: 'none' }}>Kiwi in Disguise</h1>
           <p className="subtitle">Blend in. Don't get caught.</p>
         </div>
 

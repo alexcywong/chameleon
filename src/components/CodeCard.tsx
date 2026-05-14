@@ -1,20 +1,20 @@
 import './CodeCard.css';
 
 interface CodeCardProps {
-  isChameleon: boolean;
+  isKiwi: boolean;
   coordinate?: string; // kept for compatibility but no longer displayed
   secretWord?: string;
 }
 
-export default function CodeCard({ isChameleon, secretWord }: CodeCardProps) {
-  if (isChameleon) {
+export default function CodeCard({ isKiwi, secretWord }: CodeCardProps) {
+  if (isKiwi) {
     return (
-      <div className="code-card card card-chameleon reveal-card">
+      <div className="code-card card card-kiwi reveal-card">
         <span className="label" style={{ color: 'var(--red-400)' }}>Your Card</span>
-        <div className="code-card-chameleon-content">
-          <span className="chameleon-emoji">🦎</span>
+        <div className="code-card-kiwi-content">
+          <img src="/images/kiwi-shh.jpg" alt="Kiwi in Disguise" className="kiwi-emoji" style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover' }} />
           <h3 className="code-card-title" style={{ color: 'var(--red-400)' }}>
-            YOU ARE THE<br />CHAMELEON
+            YOU ARE THE<br />KIWI
           </h3>
           <p className="code-card-subtitle">
             Blend in. Don't get caught.

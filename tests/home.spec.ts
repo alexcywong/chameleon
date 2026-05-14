@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Home Page', () => {
   test('renders the home page with title and buttons', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('h1')).toContainText('Chameleon');
+    await expect(page.locator('h1')).toContainText('Kiwi');
     await expect(page.locator('#btn-create-game')).toBeVisible();
     await expect(page.locator('#btn-join-game')).toBeVisible();
   });

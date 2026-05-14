@@ -17,10 +17,10 @@ interface GameState {
   currentRound: number; totalRounds: number;
   topicIndex: number; secretWordIndex: number;
   diceYellow: number; diceBlue: number;
-  chameleonId: string; codeCardSetIndex: number;
+  kiwiId: string; codeCardSetIndex: number;
   players: Record<string, Player>;
   turnOrder: string[]; currentTurnIndex: number;
-  chameleonGuess: string; roundHistory: unknown[];
+  kiwiGuess: string; roundHistory: unknown[];
   createdAt: number;
   lastScoredRound?: number; // Guard against double-scoring
 }
@@ -53,7 +53,7 @@ function broadcast(gameId: string) {
 
 /**
  * Server-side: after a vote update, check if all players voted.
- * If so, advance to either CHAMELEON_GUESS or SCORING.
+ * If so, advance to either KIWI_GUESS or SCORING.
  * This prevents deadlocks in WS mode where the client store hasn't updated yet.
  */
 function checkAllVotesAndAdvance(gameId: string) {
@@ -83,14 +83,14 @@ function checkAllVotesAndAdvance(gameId: string) {
   }
   const accusedId = winners.length === 1 ? winners[0] : game.hostId;
 
-  if (accusedId === game.chameleonId) {
-    // Chameleon was caught — let them guess
-    game.phase = 'CHAMELEON_GUESS';
+  if (accusedId === game.kiwiId) {
+    // Kiwi was caught — let them guess
+    game.phase = 'KIWI_GUESS';
   } else {
-    // Wrong person accused — chameleon escapes, score immediately
+    // Wrong person accused — kiwi escapes, score immediately
     const scores: Record<string, number> = {};
     for (const id of Object.keys(game.players)) {
-      scores[id] = id === game.chameleonId ? 2 : 0;
+      scores[id] = id === game.kiwiId ? 2 : 0;
     }
     // Update scores
     for (const [id, pts] of Object.entries(scores)) {
@@ -104,16 +104,16 @@ function checkAllVotesAndAdvance(gameId: string) {
     const topicCard = topicCards[game.topicIndex % topicCards.length];
     const secretIdx = getSecretWordIndex(game.codeCardSetIndex, game.diceYellow, game.diceBlue);
     const secretWord = topicCard?.words?.[secretIdx] || 'Unknown';
-    const chameleonName = game.players[game.chameleonId]?.name || 'Unknown';
+    const kiwiName = game.players[game.kiwiId]?.name || 'Unknown';
 
     const result = {
       round: game.currentRound,
       topic: topicCard?.topic || 'Unknown',
       secretWord,
-      chameleonId: game.chameleonId,
-      chameleonName,
-      chameleonCaught: false,
-      chameleonGuessedCorrectly: false,
+      kiwiId: game.kiwiId,
+      kiwiName,
+      kiwiCaught: false,
+      kiwiGuessedCorrectly: false,
       scores,
     };
     game.roundHistory = [...(game.roundHistory || []), result];
@@ -126,15 +126,15 @@ function checkAllVotesAndAdvance(gameId: string) {
 }
 
 /**
- * Server-side: after chameleon guess, calculate scores and advance to SCORING.
+ * Server-side: after kiwi guess, calculate scores and advance to SCORING.
  */
-function handleChameleonGuessOnServer(gameId: string) {
+function handleKiwiGuessOnServer(gameId: string) {
   const game = games.get(gameId);
-  if (!game || game.phase !== 'CHAMELEON_GUESS' || !game.chameleonGuess) return;
+  if (!game || game.phase !== 'KIWI_GUESS' || !game.kiwiGuess) return;
 
   // Double-scoring guard
   if (game.lastScoredRound !== undefined && game.lastScoredRound >= game.currentRound) {
-    console.log(`⚠️ Skipping chameleon guess scoring for game ${gameId} round ${game.currentRound} — already scored`);
+    console.log(`⚠️ Skipping kiwi guess scoring for game ${gameId} round ${game.currentRound} — already scored`);
     return;
   }
 
@@ -142,17 +142,17 @@ function handleChameleonGuessOnServer(gameId: string) {
   const topicCard = topicCards[game.topicIndex % topicCards.length];
   const secretIdx = getSecretWordIndex(game.codeCardSetIndex, game.diceYellow, game.diceBlue);
   const secretWord = topicCard?.words?.[secretIdx] || 'Unknown';
-  const guessedWord = game.chameleonGuess;
+  const guessedWord = game.kiwiGuess;
   const correct = guessedWord === secretWord;
 
   const scores: Record<string, number> = {};
   for (const id of Object.keys(game.players)) {
     if (!correct) {
-      // Chameleon caught and failed
-      scores[id] = id === game.chameleonId ? 0 : 2;
+      // Kiwi caught and failed
+      scores[id] = id === game.kiwiId ? 0 : 2;
     } else {
-      // Chameleon caught but guessed correctly
-      scores[id] = id === game.chameleonId ? 1 : 0;
+      // Kiwi caught but guessed correctly
+      scores[id] = id === game.kiwiId ? 1 : 0;
     }
   }
 
@@ -164,10 +164,10 @@ function handleChameleonGuessOnServer(gameId: string) {
     round: game.currentRound,
     topic: topicCard?.topic || 'Unknown',
     secretWord,
-    chameleonId: game.chameleonId,
-    chameleonName: game.players[game.chameleonId]?.name || 'Unknown',
-    chameleonCaught: true,
-    chameleonGuessedCorrectly: correct,
+    kiwiId: game.kiwiId,
+    kiwiName: game.players[game.kiwiId]?.name || 'Unknown',
+    kiwiCaught: true,
+    kiwiGuessedCorrectly: correct,
     guessedWord,
     scores,
   };
@@ -363,10 +363,10 @@ function handleMessage(ws: WebSocket, raw: string) {
       games.set(msg.gameId, { ...current, ...msg.updates } as GameState);
       broadcast(msg.gameId);
 
-      // After UPDATE_GAME with chameleonGuess, check if we should advance
+      // After UPDATE_GAME with kiwiGuess, check if we should advance
       const updated = games.get(msg.gameId);
-      if (updated?.phase === 'CHAMELEON_GUESS' && updated.chameleonGuess) {
-        handleChameleonGuessOnServer(msg.gameId);
+      if (updated?.phase === 'KIWI_GUESS' && updated.kiwiGuess) {
+        handleKiwiGuessOnServer(msg.gameId);
       }
       break;
     }
@@ -452,6 +452,6 @@ setInterval(() => {
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
 server.listen(PORT, () => {
-  console.log(`🦎 Chameleon server running on port ${PORT}`);
+  console.log(`🥝 Kiwi server running on port ${PORT}`);
   console.log(`   ${games.size} active games`);
 });

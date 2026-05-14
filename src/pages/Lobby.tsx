@@ -11,7 +11,7 @@ const BOT_NAMES = ['Riley', 'Jordan', 'Morgan', 'Quinn', 'Avery', 'Taylor', 'Cas
 let botNameIdx = 0;
 
 const WAITING_QUIPS = [
-  'Warming up the chameleon...',
+  'Warming up the kiwi...',
   'Teaching lizards to lie...',
   'Sharpening suspicious glances...',
   'Loading trust issues...',
@@ -214,7 +214,7 @@ export default function Lobby() {
         <div className="app-bg" />
         <div className="container container-narrow text-center">
           <div className="mb-lg fade-in">
-            <span className="chameleon-icon">🦎</span>
+            <img src="/images/kiwi-shh.jpg" alt="Kiwi in Disguise" className="kiwi-icon" style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover' }} />
             <h1 className="title-lg">Join Game</h1>
             <p className="subtitle">Room: <strong>{roomCode}</strong></p>
           </div>
@@ -271,7 +271,7 @@ export default function Lobby() {
 
       <div className="container container-narrow">
         <div className="text-center mb-lg fade-in">
-          <span className="chameleon-icon">🦎</span>
+          <img src="/images/kiwi-shh.jpg" alt="Kiwi in Disguise" className="kiwi-icon" style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover' }} />
           <h1 className="title-lg">Waiting Room</h1>
         </div>
 

@@ -2,7 +2,7 @@
 
 /* ===== Design Tokens ===== */
 :root {
-  /* Chameleon palette */
+  /* Kiwi palette */
   --emerald-900: #064e3b;
   --emerald-800: #065f46;
   --emerald-700: #047857;
@@ -192,7 +192,7 @@ body {
   box-shadow: var(--shadow-md), var(--shadow-glow);
 }
 
-.card-chameleon {
+.card-kiwi {
   border-color: var(--red-400);
   background: rgba(239, 68, 68, 0.06);
   box-shadow: var(--shadow-md), 0 0 20px rgba(239, 68, 68, 0.15);
@@ -714,8 +714,8 @@ h1, h2, h3, h4, h5, h6 {
   animation: spin 0.8s linear infinite;
 }
 
-/* ===== Chameleon icon ===== */
-.chameleon-icon {
+/* ===== Kiwi icon ===== */
+.kiwi-icon {
   display: inline-block;
   font-size: 2rem;
 }

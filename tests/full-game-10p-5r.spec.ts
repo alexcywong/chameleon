@@ -6,11 +6,11 @@ import { test, expect, Browser, BrowserContext, Page } from '@playwright/test';
  * Verifies:
  * 1. All 10 players can join and see each other
  * 2. Each round plays through: clue → discussion → voting → scoring
- * 3. ALL players see the SAME chameleon caught/escaped result
+ * 3. ALL players see the SAME kiwi caught/escaped result
  * 4. Scores are tallied correctly per the scoring rules:
- *    - Chameleon escapes:       chameleon +2, others +0
- *    - Chameleon caught, wrong guess: chameleon +0, others +2
- *    - Chameleon caught, right guess:  chameleon +1, others +0
+ *    - Kiwi escapes:       kiwi +2, others +0
+ *    - Kiwi caught, wrong guess: kiwi +0, others +2
+ *    - Kiwi caught, right guess:  kiwi +1, others +0
  * 5. Nobody gets kicked/redirected at any point
  * 6. After 5 rounds, the final results page is reached
  */
@@ -27,7 +27,7 @@ interface PlayerSession {
 
 interface RoundVerification {
   round: number;
-  chameleonName: string;
+  kiwiName: string;
   caught: boolean;
   guessedCorrectly: boolean;
   scoreDeltas: Record<string, number>;
@@ -119,12 +119,12 @@ async function castVote(player: PlayerSession): Promise<void> {
   }
 }
 
-async function handleChameleonGuess(player: PlayerSession): Promise<void> {
+async function handleKiwiGuess(player: PlayerSession): Promise<void> {
   const guessOption = player.page.locator('.word-cell.is-guess-option').first();
   if (await guessOption.isVisible({ timeout: 2000 }).catch(() => false)) {
     await guessOption.click();
     await player.page.waitForTimeout(300);
-    const guessBtn = player.page.locator('#btn-chameleon-guess');
+    const guessBtn = player.page.locator('#btn-kiwi-guess');
     if (await guessBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
       await guessBtn.click();
     }
@@ -133,10 +133,10 @@ async function handleChameleonGuess(player: PlayerSession): Promise<void> {
 
 /**
  * Extract scoring info from a player's page during SCORING phase.
- * Returns: { chameleonName, caught, guessedCorrectly, playerScores }
+ * Returns: { kiwiName, caught, guessedCorrectly, playerScores }
  */
 async function extractScoringInfo(page: Page): Promise<{
-  chameleonName: string;
+  kiwiName: string;
   caught: boolean | null;
   guessedCorrectly: boolean;
   topic: string;
@@ -146,13 +146,13 @@ async function extractScoringInfo(page: Page): Promise<{
   const scoringInfo = page.locator('.scoring-info');
   const body = await scoringInfo.textContent().catch(() => '') || '';
 
-  // Extract chameleon name from the <strong> inside the chameleon line
-  // Use the last <strong> (first is Topic, second is Secret Word, third is chameleon name)
+  // Extract kiwi name from the <strong> inside the kiwi line
+  // Use the last <strong> (first is Topic, second is Secret Word, third is kiwi name)
   const strongElements = scoringInfo.locator('strong');
   const strongCount = await strongElements.count();
-  let chameleonName = 'Unknown';
+  let kiwiName = 'Unknown';
   if (strongCount >= 3) {
-    chameleonName = (await strongElements.nth(2).textContent().catch(() => '') || '').trim();
+    kiwiName = (await strongElements.nth(2).textContent().catch(() => '') || '').trim();
   }
 
   // Determine if caught, escaped, or guessed correctly from badges
@@ -163,7 +163,7 @@ async function extractScoringInfo(page: Page): Promise<{
   // Extract topic and secret word
   const topicMatch = body.match(/Topic:\s*(.+?)(?:\s*Secret|\s*$)/);
   const topic = topicMatch?.[1]?.trim() || 'Unknown';
-  const wordMatch = body.match(/Secret Word:\s*(.+?)(?:\s*Chameleon|\s*$)/);
+  const wordMatch = body.match(/Secret Word:\s*(.+?)(?:\s*Kiwi|\s*$)/);
   const secretWord = wordMatch?.[1]?.trim() || 'Unknown';
 
   // Extract scores from the ScoreBoard component
@@ -181,7 +181,7 @@ async function extractScoringInfo(page: Page): Promise<{
     }
   }
 
-  return { chameleonName, caught, guessedCorrectly, topic, secretWord, playerScores };
+  return { kiwiName, caught, guessedCorrectly, topic, secretWord, playerScores };
 }
 
 // ── Main Test ─────────────────────────────────────────────
@@ -244,9 +244,9 @@ test.describe('Full 10-Player 5-Round Game', () => {
         await Promise.all(players.map(p => castVote(p)));
         console.log(`  ✅ All votes cast`);
 
-        // 4. CHAMELEON GUESS (if applicable)
+        // 4. KIWI GUESS (if applicable)
         await players[0].page.waitForTimeout(2000);
-        await Promise.all(players.map(p => handleChameleonGuess(p)));
+        await Promise.all(players.map(p => handleKiwiGuess(p)));
 
         // 5. WAIT FOR SCORING
         await players[0].page.waitForTimeout(3000);
@@ -271,10 +271,10 @@ test.describe('Full 10-Player 5-Round Game', () => {
           players.map(p => extractScoringInfo(p.page))
         );
 
-        // Verify ALL players see the SAME chameleon name
-        const chameleonNames = [...new Set(scoringInfos.map(s => s.chameleonName))];
-        console.log(`  🦎 Chameleon: ${chameleonNames.join(', ')}`);
-        expect(chameleonNames.length, `All players should see same chameleon name`).toBe(1);
+        // Verify ALL players see the SAME kiwi name
+        const kiwiNames = [...new Set(scoringInfos.map(s => s.kiwiName))];
+        console.log(`  🥝 Kiwi: ${kiwiNames.join(', ')}`);
+        expect(kiwiNames.length, `All players should see same kiwi name`).toBe(1);
 
         // Verify ALL players see the SAME caught/escaped status
         const caughtStatuses = [...new Set(scoringInfos.map(s => s.caught))];
@@ -295,22 +295,22 @@ test.describe('Full 10-Player 5-Round Game', () => {
         console.log(`  📈 Scores: ${JSON.stringify(hostScores)}`);
 
         // Calculate expected score deltas based on rules
-        const chameleonName = chameleonNames[0];
+        const kiwiName = kiwiNames[0];
         let expectedDelta: Record<string, number> = {};
         if (!caught) {
-          // Chameleon escaped: chameleon +2, others +0
+          // Kiwi escaped: kiwi +2, others +0
           for (const name of playerNames) {
-            expectedDelta[name] = name === chameleonName ? 2 : 0;
+            expectedDelta[name] = name === kiwiName ? 2 : 0;
           }
         } else if (guessedCorrectly) {
-          // Caught but guessed correctly: chameleon +1, others +0
+          // Caught but guessed correctly: kiwi +1, others +0
           for (const name of playerNames) {
-            expectedDelta[name] = name === chameleonName ? 1 : 0;
+            expectedDelta[name] = name === kiwiName ? 1 : 0;
           }
         } else {
-          // Caught and wrong guess: chameleon +0, others +2
+          // Caught and wrong guess: kiwi +0, others +2
           for (const name of playerNames) {
-            expectedDelta[name] = name === chameleonName ? 0 : 2;
+            expectedDelta[name] = name === kiwiName ? 0 : 2;
           }
         }
 
@@ -343,7 +343,7 @@ test.describe('Full 10-Player 5-Round Game', () => {
 
         roundResults.push({
           round,
-          chameleonName: chameleonNames[0],
+          kiwiName: kiwiNames[0],
           caught: caught === true,
           guessedCorrectly,
           scoreDeltas: expectedDelta,
@@ -394,7 +394,7 @@ test.describe('Full 10-Player 5-Round Game', () => {
       console.log(`${'═'.repeat(60)}`);
       for (const r of roundResults) {
         const status = r.caught ? (r.guessedCorrectly ? '⚠️ Caught+Guessed' : '🎯 Caught') : '💨 Escaped';
-        console.log(`  Round ${r.round}: ${r.chameleonName} was 🦎 → ${status}`);
+        console.log(`  Round ${r.round}: ${r.kiwiName} was 🥝 → ${status}`);
       }
       console.log(`\n  Final Scores (expected):`);
       const sorted = Object.entries(cumulativeScores).sort((a, b) => b[1] - a[1]);

@@ -3,7 +3,7 @@
   padding: 1.25rem 1rem;
 }
 
-.code-card-chameleon-content {
+.code-card-kiwi-content {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -11,12 +11,12 @@
   padding: 0.5rem 0;
 }
 
-.chameleon-emoji {
+.kiwi-emoji {
   font-size: 2.5rem;
-  animation: chameleon-pulse 2s ease-in-out infinite;
+  animation: kiwi-pulse 2s ease-in-out infinite;
 }
 
-@keyframes chameleon-pulse {
+@keyframes kiwi-pulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.15) rotate(5deg); }
 }

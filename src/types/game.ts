@@ -4,7 +4,7 @@ export type GamePhase =
   | 'CLUE_GIVING'
   | 'VOTING'
   | 'REVEAL'
-  | 'CHAMELEON_GUESS'
+  | 'KIWI_GUESS'
   | 'SCORING'
   | 'GAME_OVER'
   | 'ENDED';
@@ -24,10 +24,10 @@ export interface RoundResult {
   round: number;
   topic: string;
   secretWord: string;
-  chameleonId: string;
-  chameleonName: string;
-  chameleonCaught: boolean;
-  chameleonGuessedCorrectly: boolean;
+  kiwiId: string;
+  kiwiName: string;
+  kiwiCaught: boolean;
+  kiwiGuessedCorrectly: boolean;
   guessedWord?: string;
   scores: Record<string, number>;
 }
@@ -42,12 +42,12 @@ export interface GameState {
   secretWordIndex: number;
   diceYellow: number;
   diceBlue: number;
-  chameleonId: string;
+  kiwiId: string;
   codeCardSetIndex: number;
   players: Record<string, Player>;
   turnOrder: string[];
   currentTurnIndex: number;
-  chameleonGuess: string;
+  kiwiGuess: string;
   roundHistory: RoundResult[];
   createdAt: number;
 }

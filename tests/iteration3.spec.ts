@@ -120,44 +120,44 @@ test.describe('Voting — Details', () => {
 });
 
 // ──────────────────────────────────────────────────────────
-// 2. CHAMELEON CARD STATES
+// 2. KIWI CARD STATES
 // ──────────────────────────────────────────────────────────
-test.describe('Chameleon Card States', () => {
-  test('code card shows either chameleon or coordinate', async ({ page }) => {
+test.describe('Kiwi Card States', () => {
+  test('code card shows either kiwi or coordinate', async ({ page }) => {
     await startGameWithBots(page);
     const codeCard = page.locator('.code-card');
     await expect(codeCard).toBeVisible();
     const text = await codeCard.textContent();
-    // Should have either "CHAMELEON" or a coordinate like "A1", "B3"
-    const isChameleon = text!.includes('CHAMELEON');
+    // Should have either "KIWI" or a coordinate like "A1", "B3"
+    const isKiwi = text!.includes('KIWI');
     const hasCoordinate = /[A-D][1-4]/.test(text!);
-    expect(isChameleon || hasCoordinate).toBe(true);
+    expect(isKiwi || hasCoordinate).toBe(true);
   });
 
-  test('chameleon card has red styling', async ({ page }) => {
-    // Try 5 games to find a chameleon assignment
+  test('kiwi card has red styling', async ({ page }) => {
+    // Try 5 games to find a kiwi assignment
     for (let attempt = 0; attempt < 5; attempt++) {
       await startGameWithBots(page);
       const codeCard = page.locator('.code-card');
       const text = await codeCard.textContent();
-      if (text!.includes('CHAMELEON')) {
+      if (text!.includes('KIWI')) {
         const classes = await codeCard.getAttribute('class');
-        expect(classes).toContain('card-chameleon');
+        expect(classes).toContain('card-kiwi');
         return;
       }
       await page.goto('/');
     }
-    // If we never got chameleon in 5 tries, that's fine
+    // If we never got kiwi in 5 tries, that's fine
     expect(true).toBe(true);
   });
 
-  test('non-chameleon card shows secret word', async ({ page }) => {
-    // Try to find a non-chameleon assignment
+  test('non-kiwi card shows secret word', async ({ page }) => {
+    // Try to find a non-kiwi assignment
     for (let attempt = 0; attempt < 5; attempt++) {
       await startGameWithBots(page);
       const codeCard = page.locator('.code-card');
       const text = await codeCard.textContent();
-      if (!text!.includes('CHAMELEON')) {
+      if (!text!.includes('KIWI')) {
         expect(text).toContain('Secret Word');
         return;
       }
@@ -176,14 +176,14 @@ test.describe('Scoring — Details', () => {
     await startGameWithBots(page);
     await playThroughVoting(page);
 
-    // Wait for scoring phase (handle chameleon guess if needed)
+    // Wait for scoring phase (handle kiwi guess if needed)
     for (let i = 0; i < 15; i++) {
       await page.waitForTimeout(1000);
       const guessOption = page.locator('.word-cell.is-guess-option').first();
       if (await guessOption.isVisible({ timeout: 200 }).catch(() => false)) {
         await guessOption.click();
         await page.waitForTimeout(300);
-        const guessBtn = page.locator('#btn-chameleon-guess');
+        const guessBtn = page.locator('#btn-kiwi-guess');
         if (await guessBtn.isVisible({ timeout: 300 }).catch(() => false)) {
           await guessBtn.click();
         }
@@ -210,7 +210,7 @@ test.describe('Scoring — Details', () => {
       if (await guessOption.isVisible({ timeout: 200 }).catch(() => false)) {
         await guessOption.click();
         await page.waitForTimeout(300);
-        const guessBtn = page.locator('#btn-chameleon-guess');
+        const guessBtn = page.locator('#btn-kiwi-guess');
         if (await guessBtn.isVisible({ timeout: 300 }).catch(() => false)) await guessBtn.click();
       }
       if (await page.locator('#btn-next-round').isVisible({ timeout: 200 }).catch(() => false)) break;
@@ -221,7 +221,7 @@ test.describe('Scoring — Details', () => {
     // Should show round result info
     const hasInfo = body!.includes('Round') ||
       body!.includes('Topic:') ||
-      body!.includes('Chameleon:') ||
+      body!.includes('Kiwi:') ||
       body!.includes('Secret Word:');
     expect(hasInfo).toBe(true);
   });
@@ -234,7 +234,7 @@ test.describe('Responsive Design', () => {
   test('home page renders on mobile viewport', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto('/');
-    await expect(page.locator('h1')).toContainText('Chameleon');
+    await expect(page.locator('h1')).toContainText('Kiwi');
     await expect(page.locator('#btn-create-game')).toBeVisible();
   });
 

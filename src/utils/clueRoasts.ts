@@ -24,17 +24,17 @@ const TOO_VAGUE_ROASTS = [
   "Thanks for nothing, {name}. \"{clue}\" tells us absolutely zilch about {topic}.",
   "{name} went with \"{clue}\" — either genius-level misdirection or they're lost.",
   "\"{clue}\"… {name}, did you just pick a random word from the dictionary?",
-  "{name} out here playing 4D chess with \"{clue}\" while we're playing Chameleon.",
+  "{name} out here playing 4D chess with \"{clue}\" while we're playing Kiwi.",
   "Is \"{clue}\" even a real clue, {name}? Or did your cat walk on the keyboard?",
   "{name}'s strategy: say something so vague nobody can accuse you. \"{clue}\" — classic.",
 ];
 
-const CHAMELEON_SUSPICIOUS_ROASTS = [
-  "\"{clue}\"? That's EXACTLY what a Chameleon would say, {name}. 🦎",
+const KIWI_SUSPICIOUS_ROASTS = [
+  "\"{clue}\"? That's EXACTLY what a Kiwi would say, {name}. 🥝",
   "{name} sweated out \"{clue}\" — a clue that works for literally any word on the board.",
-  "Hmm, {name}… \"{clue}\" is giving strong Chameleon energy right now.",
+  "Hmm, {name}… \"{clue}\" is giving strong Kiwi energy right now.",
   "{name} said \"{clue}\" like they read the topic card upside down. Sus. 🤔",
-  "\"{clue}\"? {name} is either the Chameleon or just terrible at this game.",
+  "\"{clue}\"? {name} is either the Kiwi or just terrible at this game.",
   "I've seen better bluffs in kindergarten, {name}. \"{clue}\"? Really?",
   "{name} dropped \"{clue}\" with the confidence of someone who didn't see the word.",
   "\"{clue}\" — {name} definitely Googled 'generic things about {topic}' real quick.",
@@ -107,7 +107,7 @@ export function generateClueRoast(
   } else if (isDuplicate(clue, allClues)) {
     pool = COPYCAT_ROASTS;
   } else if (Math.random() < 0.3) {
-    pool = CHAMELEON_SUSPICIOUS_ROASTS;
+    pool = KIWI_SUSPICIOUS_ROASTS;
   } else {
     pool = GENERIC_ROASTS;
   }

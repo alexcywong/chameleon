@@ -102,12 +102,12 @@ async function voteIfNeeded(player: PlayerSession): Promise<void> {
   }
 }
 
-async function handleChameleonGuess(player: PlayerSession): Promise<void> {
+async function handleKiwiGuess(player: PlayerSession): Promise<void> {
   const guessOption = player.page.locator('.word-cell.is-guess-option').first();
   if (await guessOption.isVisible({ timeout: 1000 }).catch(() => false)) {
     await guessOption.click();
     await player.page.waitForTimeout(300);
-    const guessBtn = player.page.locator('#btn-chameleon-guess');
+    const guessBtn = player.page.locator('#btn-kiwi-guess');
     if (await guessBtn.isVisible({ timeout: 500 }).catch(() => false)) {
       await guessBtn.click();
     }
@@ -128,9 +128,9 @@ async function playOneRound(players: PlayerSession[], hostIdx: number): Promise<
   await host.page.waitForTimeout(1000); // Let voting phase propagate
   await Promise.all(players.map(p => voteIfNeeded(p)));
 
-  // 4. Handle chameleon guess if it appears (for any player)
+  // 4. Handle kiwi guess if it appears (for any player)
   await host.page.waitForTimeout(1500);
-  await Promise.all(players.map(p => handleChameleonGuess(p)));
+  await Promise.all(players.map(p => handleKiwiGuess(p)));
 
   // 5. SCORING: Host clicks next round
   await host.page.waitForTimeout(2000);

@@ -23,9 +23,9 @@ test.describe('Gameplay — 3 Players', () => {
     await expect(page.locator('text=TOPIC CARD')).toBeVisible();
   });
 
-  test('shows code card (chameleon or coordinate)', async ({ page }) => {
+  test('shows code card (kiwi or coordinate)', async ({ page }) => {
     await startGameWithBots(page);
-    // Should show either "YOU ARE THE CHAMELEON" or a coordinate like "B3"
+    // Should show either "YOU ARE THE KIWI" or a coordinate like "B3"
     const codeCard = page.locator('.code-card');
     await expect(codeCard).toBeVisible();
     const text = await codeCard.textContent();
@@ -97,12 +97,12 @@ test.describe('Gameplay — 3 Players', () => {
     }
     await page.waitForTimeout(3000);
 
-    // Should see scoring results or chameleon guess
+    // Should see scoring results or kiwi guess
     const body = await page.textContent('body');
     const reachedScoring = body!.includes('Results') ||
       body!.includes('Escaped') ||
       body!.includes('Caught') ||
-      body!.includes('Chameleon') ||
+      body!.includes('Kiwi') ||
       body!.includes('Next Round');
     expect(reachedScoring).toBe(true);
   });

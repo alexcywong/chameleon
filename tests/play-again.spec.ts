@@ -78,12 +78,12 @@ async function castVote(player: PlayerSession): Promise<void> {
   }
 }
 
-async function handleChameleonGuess(player: PlayerSession): Promise<void> {
+async function handleKiwiGuess(player: PlayerSession): Promise<void> {
   const opt = player.page.locator('.word-cell.is-guess-option').first();
   if (await opt.isVisible({ timeout: 2000 }).catch(() => false)) {
     await opt.click();
     await player.page.waitForTimeout(300);
-    const btn = player.page.locator('#btn-chameleon-guess');
+    const btn = player.page.locator('#btn-kiwi-guess');
     if (await btn.isVisible({ timeout: 1000 }).catch(() => false)) await btn.click();
   }
 }
@@ -141,9 +141,9 @@ test.describe('Play Again Flow', () => {
         await Promise.all(players.map(p => castVote(p)));
         console.log(`  Round ${round}: Votes cast`);
 
-        // Chameleon guess
+        // Kiwi guess
         await players[0].page.waitForTimeout(2000);
-        await Promise.all(players.map(p => handleChameleonGuess(p)));
+        await Promise.all(players.map(p => handleKiwiGuess(p)));
         await players[0].page.waitForTimeout(3000);
 
         // Wait for scoring
@@ -217,7 +217,7 @@ test.describe('Play Again Flow', () => {
       await players[0].page.waitForTimeout(1000);
       await Promise.all(players.map(p => castVote(p)));
       await players[0].page.waitForTimeout(2000);
-      await Promise.all(players.map(p => handleChameleonGuess(p)));
+      await Promise.all(players.map(p => handleKiwiGuess(p)));
       await players[0].page.waitForTimeout(3000);
       await waitForText(players[0].page, 'Results', 10000);
       console.log(`  ✅ Second game round 1 completed — scoring visible`);

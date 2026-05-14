@@ -67,7 +67,7 @@ async function playFullRound(page: Page): Promise<void> {
   await playThroughClueGiving(page);
 
   // Wait for voting phase
-  const phase = await waitForPhase(page, ['VOTING', 'SCORING', 'CHAMELEON GUESS']);
+  const phase = await waitForPhase(page, ['VOTING', 'SCORING', 'KIWI GUESS']);
   
   // Cast vote if we're in voting
   if (phase === 'VOTING') {
@@ -100,13 +100,13 @@ async function playFullRound(page: Page): Promise<void> {
 
   const currentPhase = await getPhase(page);
 
-  // Handle CHAMELEON GUESS if we're the chameleon
-  if (currentPhase === 'CHAMELEON GUESS') {
+  // Handle KIWI GUESS if we're the kiwi
+  if (currentPhase === 'KIWI GUESS') {
     const guessOptions = page.locator('.is-guess-option');
     if (await guessOptions.first().isVisible({ timeout: 3000 }).catch(() => false)) {
       await guessOptions.first().click();
       await page.waitForTimeout(300);
-      const guessBtn = page.locator('#btn-chameleon-guess');
+      const guessBtn = page.locator('#btn-kiwi-guess');
       if (await guessBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
         await guessBtn.click();
       }
@@ -130,7 +130,7 @@ test.describe('Skip Discussion Tests', () => {
     await createAndStartGame(page);
     await playThroughClueGiving(page);
 
-    const phase = await waitForPhase(page, ['VOTING', 'SCORING', 'CHAMELEON GUESS', 'GAME OVER'], 30000);
+    const phase = await waitForPhase(page, ['VOTING', 'SCORING', 'KIWI GUESS', 'GAME OVER'], 30000);
     // The critical assertion: DISCUSSION phase never appears
     expect(phase).not.toBe('DISCUSSION');
   });
@@ -140,7 +140,7 @@ test.describe('Skip Discussion Tests', () => {
     await createAndStartGame(page);
     await playThroughClueGiving(page);
 
-    await waitForPhase(page, ['VOTING', 'SCORING', 'CHAMELEON GUESS'], 20000);
+    await waitForPhase(page, ['VOTING', 'SCORING', 'KIWI GUESS'], 20000);
     const startVotingBtn = page.locator('#btn-start-voting');
     const isVisible = await startVotingBtn.isVisible().catch(() => false);
     expect(isVisible).toBe(false);
@@ -151,7 +151,7 @@ test.describe('Skip Discussion Tests', () => {
     await createAndStartGame(page);
     await playThroughClueGiving(page);
 
-    const phase = await waitForPhase(page, ['VOTING', 'SCORING', 'CHAMELEON GUESS'], 20000);
+    const phase = await waitForPhase(page, ['VOTING', 'SCORING', 'KIWI GUESS'], 20000);
     if (phase === 'VOTING') {
       const header = page.locator('h3', { hasText: 'Cast Your Vote' });
       await expect(header).toBeVisible({ timeout: 5000 });
@@ -163,7 +163,7 @@ test.describe('Skip Discussion Tests', () => {
     await createAndStartGame(page);
     await playThroughClueGiving(page);
 
-    const phase = await waitForPhase(page, ['VOTING', 'SCORING', 'CHAMELEON GUESS'], 20000);
+    const phase = await waitForPhase(page, ['VOTING', 'SCORING', 'KIWI GUESS'], 20000);
     if (phase === 'VOTING') {
       const toggle = page.locator('.clue-recap-toggle');
       await expect(toggle).toBeVisible({ timeout: 5000 });
@@ -175,7 +175,7 @@ test.describe('Skip Discussion Tests', () => {
     await createAndStartGame(page);
     await playThroughClueGiving(page);
 
-    const phase = await waitForPhase(page, ['VOTING', 'SCORING', 'CHAMELEON GUESS'], 20000);
+    const phase = await waitForPhase(page, ['VOTING', 'SCORING', 'KIWI GUESS'], 20000);
     if (phase === 'VOTING') {
       const toggle = page.locator('.clue-recap-toggle');
       if (await toggle.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -191,7 +191,7 @@ test.describe('Skip Discussion Tests', () => {
     await createAndStartGame(page);
     await playThroughClueGiving(page);
 
-    const phase = await waitForPhase(page, ['VOTING', 'SCORING', 'CHAMELEON GUESS'], 20000);
+    const phase = await waitForPhase(page, ['VOTING', 'SCORING', 'KIWI GUESS'], 20000);
     if (phase === 'VOTING') {
       const codeCard = page.locator('.code-card');
       await expect(codeCard).toBeVisible({ timeout: 3000 });
@@ -203,7 +203,7 @@ test.describe('Skip Discussion Tests', () => {
     await createAndStartGame(page);
     await playThroughClueGiving(page);
 
-    const phase = await waitForPhase(page, ['VOTING', 'SCORING', 'CHAMELEON GUESS'], 20000);
+    const phase = await waitForPhase(page, ['VOTING', 'SCORING', 'KIWI GUESS'], 20000);
     if (phase === 'VOTING') {
       const topicCard = page.locator('.topic-card');
       await expect(topicCard).toBeVisible({ timeout: 3000 });

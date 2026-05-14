@@ -12,8 +12,8 @@ ws.on('open', () => {
     state: {
       gameId, hostId: 'p1', phase: 'VOTING', currentRound: 1, totalRounds: 3,
       topicIndex: 0, secretWordIndex: 0, diceYellow: 1, diceBlue: 1,
-      chameleonId: 'p2', codeCardSetIndex: 0, turnOrder: ['p1', 'p2'], currentTurnIndex: 0,
-      chameleonGuess: '', roundHistory: [], createdAt: Date.now(),
+      kiwiId: 'p2', codeCardSetIndex: 0, turnOrder: ['p1', 'p2'], currentTurnIndex: 0,
+      kiwiGuess: '', roundHistory: [], createdAt: Date.now(),
       players: {
         'p1': { id: 'p1', name: 'p1', score: 0, clue: 'c', vote: '', hasSubmitted: true, isHost: true, isConnected: true },
         'p2': { id: 'p2', name: 'p2', score: 0, clue: 'c', vote: 'p1', hasSubmitted: true, isHost: false, isConnected: true }

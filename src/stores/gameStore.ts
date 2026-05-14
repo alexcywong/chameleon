@@ -2,8 +2,8 @@ import { create } from 'zustand';
 import type { GameState, GamePhase, Player, RoundResult } from '../types/game';
 
 // Session persistence helpers — use localStorage so state survives tab close + refresh
-const SESSION_KEY = 'chameleon_session';
-const ROUND_HISTORY_KEY = 'chameleon_round_history';
+const SESSION_KEY = 'kiwi_session';
+const ROUND_HISTORY_KEY = 'kiwi_round_history';
 
 function saveSession(gameId: string | null, playerId: string | null, playerName: string) {
   if (gameId && playerId) {
@@ -72,7 +72,7 @@ interface GameStore {
 
   // Computed helpers
   isHost: () => boolean;
-  isChameleon: () => boolean;
+  isKiwi: () => boolean;
   currentPlayer: () => Player | null;
   currentPhase: () => GamePhase | null;
   playerList: () => Player[];
@@ -134,9 +134,9 @@ const useGameStore = create<GameStore>((set, get) => ({
     return game?.hostId === playerId;
   },
 
-  isChameleon: () => {
+  isKiwi: () => {
     const { game, playerId } = get();
-    return game?.chameleonId === playerId;
+    return game?.kiwiId === playerId;
   },
 
   currentPlayer: () => {

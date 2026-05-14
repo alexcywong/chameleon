@@ -77,9 +77,9 @@ test.describe('Join via Link', () => {
 // 2. HOME PAGE — ADDITIONAL TESTS
 // ──────────────────────────────────────────────────────────
 test.describe('Home Page — Extended', () => {
-  test('shows chameleon emoji and subtitle', async ({ page }) => {
+  test('shows kiwi emoji and subtitle', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('.home-chameleon-icon')).toBeVisible();
+    await expect(page.locator('.home-kiwi-main-img')).toBeVisible();
     await expect(page.locator('text=Blend in.')).toBeVisible();
   });
 
@@ -167,9 +167,9 @@ test.describe('Lobby — Extended', () => {
 // 4. GAMEPLAY — DETAILED UI TESTS
 // ──────────────────────────────────────────────────────────
 test.describe('Gameplay — UI Details', () => {
-  test('play page shows chameleon icon in header', async ({ page }) => {
+  test('play page shows kiwi icon in header', async ({ page }) => {
     await startGameWithBots(page);
-    await expect(page.locator('.play-header .chameleon-icon')).toBeVisible();
+    await expect(page.locator('.play-header .kiwi-icon')).toBeVisible();
   });
 
   test('phase badge is visible during gameplay', async ({ page }) => {
@@ -314,15 +314,15 @@ test.describe('Gameplay — Phase Transitions', () => {
       }
     }
 
-    // Wait for scoring (may go through chameleon guess first)
+    // Wait for scoring (may go through kiwi guess first)
     for (let i = 0; i < 15; i++) {
       await page.waitForTimeout(1000);
-      // Handle chameleon guess
+      // Handle kiwi guess
       const guessOption = page.locator('.word-cell.is-guess-option').first();
       if (await guessOption.isVisible({ timeout: 200 }).catch(() => false)) {
         await guessOption.click();
         await page.waitForTimeout(400);
-        const guessBtn = page.locator('#btn-chameleon-guess');
+        const guessBtn = page.locator('#btn-kiwi-guess');
         if (await guessBtn.isVisible({ timeout: 500 }).catch(() => false)) {
           await guessBtn.click();
         }
@@ -336,7 +336,7 @@ test.describe('Gameplay — Phase Transitions', () => {
     const body = await page.textContent('body');
     const hasScoring = body!.includes('Topic:') ||
       body!.includes('Secret Word:') ||
-      body!.includes('Chameleon:') ||
+      body!.includes('Kiwi:') ||
       body!.includes('Results');
     expect(hasScoring).toBe(true);
   });

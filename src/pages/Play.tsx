@@ -11,16 +11,16 @@ import DiceRoll from '../components/DiceRoll';
 import PlayerList from '../components/PlayerList';
 import ScoreBoard from '../components/ScoreBoard';
 import Confetti from '../components/Confetti';
-import ChameleonEscape from '../components/ChameleonEscape';
+import KiwiEscape from '../components/KiwiEscape';
 import { generateClueRoast } from '../utils/clueRoasts';
 import './Play.css';
 
 const BOT_CLUE_WORDS = ['thing', 'stuff', 'related', 'similar', 'nearby', 'connected', 'vibes', 'close', 'kinda', 'maybe', 'hmm', 'think', 'reminds', 'like', 'almost'];
 
-// Witty chameleon-themed messages
+// Witty kiwi-themed messages
 const WAITING_CLUE_QUIPS = [
   '🎭 Watching for suspicious pauses...',
-  '🦎 The chameleon is sweating right now',
+  '🥝 The kiwi is sweating right now',
   '🤔 Someone here is faking it',
   '👀 Study those faces carefully...',
   '🕵️ Every clue is a potential tell',
@@ -37,14 +37,14 @@ const CLUE_SUBMITTED_QUIPS = [
   '✓ Nailed it. Or did you? 🤔',
   '✓ Clue locked — let\'s see who sweats 😅',
   '✓ Submitted! Now watch the chaos unfold...',
-  '✓ Your clue is in. Act natural. 🦎',
+  '✓ Your clue is in. Act natural. 🥝',
 ];
 function pickRandom(arr: string[]) { return arr[Math.floor(Math.random() * arr.length)]; }
 
 export default function Play() {
   const navigate = useNavigate();
   const { gameId, playerId, game, reset, isReconnecting } = useGameStore();
-  const isChameleon = game?.chameleonId === playerId;
+  const isKiwi = game?.kiwiId === playerId;
   const isHost = game?.hostId === playerId;
   const playerList = game ? Object.values(game.players) : [];
   const isMyTurn = game?.phase === 'CLUE_GIVING' && game?.turnOrder?.[game.currentTurnIndex] === playerId;
@@ -190,14 +190,14 @@ export default function Play() {
           if (allVoted) {
             const { winnerId } = tallyVotes(latestGame);
             const accusedId = winnerId || latestGame.hostId;
-            if (accusedId === latestGame.chameleonId) {
-              await updateGame(gId, { phase: 'CHAMELEON_GUESS' });
+            if (accusedId === latestGame.kiwiId) {
+              await updateGame(gId, { phase: 'KIWI_GUESS' });
             } else {
-              const { scores, chameleonCaught } = calculateRoundScores(latestGame, accusedId, false);
+              const { scores, kiwiCaught } = calculateRoundScores(latestGame, accusedId, false);
               const topicCard = getTopicCard(latestGame.topicIndex);
               const secretIdx = getSecretWordIndex(latestGame.codeCardSetIndex, latestGame.diceYellow, latestGame.diceBlue);
               const word = topicCard.words[secretIdx];
-              const result = buildRoundResult(latestGame, word, chameleonCaught, false, scores);
+              const result = buildRoundResult(latestGame, word, kiwiCaught, false, scores);
               const updatedPlayers = { ...latestGame.players };
               for (const [id, pts] of Object.entries(scores)) {
                 if (updatedPlayers[id]) {
@@ -214,15 +214,15 @@ export default function Play() {
         }
       }
 
-      // CHAMELEON_GUESS: if chameleon is a bot, auto-guess
-      if (g.phase === 'CHAMELEON_GUESS' && g.chameleonId !== pId) {
+      // KIWI_GUESS: if kiwi is a bot, auto-guess
+      if (g.phase === 'KIWI_GUESS' && g.kiwiId !== pId) {
         const topicCard = getTopicCard(g.topicIndex);
         const guessIdx = Math.floor(Math.random() * topicCard.words.length);
         const guessedWord = topicCard.words[guessIdx];
         const secretIdx = getSecretWordIndex(g.codeCardSetIndex, g.diceYellow, g.diceBlue);
         const correct = guessIdx === secretIdx;
-        const { scores, chameleonCaught } = calculateRoundScores(g, g.chameleonId, correct);
-        const result = buildRoundResult(g, topicCard.words[secretIdx], chameleonCaught, correct, scores, guessedWord);
+        const { scores, kiwiCaught } = calculateRoundScores(g, g.kiwiId, correct);
+        const result = buildRoundResult(g, topicCard.words[secretIdx], kiwiCaught, correct, scores, guessedWord);
         const updatedPlayers = { ...g.players };
         for (const [id, pts] of Object.entries(scores)) {
           if (updatedPlayers[id]) {
@@ -231,7 +231,7 @@ export default function Play() {
         }
         await updateGame(gId, {
           phase: 'SCORING',
-          chameleonGuess: guessedWord,
+          kiwiGuess: guessedWord,
           players: updatedPlayers,
           roundHistory: [...(g.roundHistory || []), result],
         });
@@ -307,13 +307,13 @@ export default function Play() {
       const { winnerId } = tallyVotes(latestGame);
       const accusedId = winnerId || latestGame.hostId;
 
-      if (accusedId === latestGame.chameleonId) {
-        await updateGame(gameId, { phase: 'CHAMELEON_GUESS' });
+      if (accusedId === latestGame.kiwiId) {
+        await updateGame(gameId, { phase: 'KIWI_GUESS' });
       } else {
-        const { scores, chameleonCaught } = calculateRoundScores(
+        const { scores, kiwiCaught } = calculateRoundScores(
           latestGame, accusedId, false
         );
-        const result = buildRoundResult(latestGame, secretWord, chameleonCaught, false, scores);
+        const result = buildRoundResult(latestGame, secretWord, kiwiCaught, false, scores);
 
         const updatedPlayers = { ...latestGame.players };
         for (const [id, pts] of Object.entries(scores)) {
@@ -334,20 +334,20 @@ export default function Play() {
     }
   }
 
-  async function handleChameleonGuess() {
+  async function handleKiwiGuess() {
     if (selectedGuess === null || !gameId || !game) return;
     const guessedWord = topicCard.words[selectedGuess];
 
     if (!isLocalMode) {
       // WS mode: just set the guess, server handles scoring
-      await updateGame(gameId, { chameleonGuess: guessedWord });
+      await updateGame(gameId, { kiwiGuess: guessedWord });
       return;
     }
 
     // Local mode: calculate scores on the client
     const correct = selectedGuess === secretWordIdx;
-    const { scores, chameleonCaught } = calculateRoundScores(game, game.chameleonId, correct);
-    const result = buildRoundResult(game, secretWord, chameleonCaught, correct, scores, guessedWord);
+    const { scores, kiwiCaught } = calculateRoundScores(game, game.kiwiId, correct);
+    const result = buildRoundResult(game, secretWord, kiwiCaught, correct, scores, guessedWord);
 
     const updatedPlayers = { ...game.players };
     for (const [id, pts] of Object.entries(scores)) {
@@ -361,7 +361,7 @@ export default function Play() {
 
     await updateGame(gameId, {
       phase: 'SCORING',
-      chameleonGuess: guessedWord,
+      kiwiGuess: guessedWord,
       players: updatedPlayers,
       roundHistory: [...(game.roundHistory || []), result],
     });
@@ -405,7 +405,7 @@ export default function Play() {
         {/* Header */}
         <div className="play-header fade-in">
           <div className="flex items-center gap-sm">
-            <span className="chameleon-icon" style={{ fontSize: '1.5rem' }}>🦎</span>
+            <img src="/images/kiwi-suspicious.jpg" alt="Kiwi in Disguise" className="kiwi-icon" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
             <span className="label">Round {game.currentRound} / {game.totalRounds}</span>
           </div>
           <div className="flex items-center gap-sm">
@@ -441,9 +441,9 @@ export default function Play() {
             {(game.phase === 'CLUE_GIVING' || game.phase === 'VOTING') && (
               <div className="mb-lg">
                 <CodeCard
-                  isChameleon={isChameleon}
-                  coordinate={isChameleon ? undefined : coordinate}
-                  secretWord={isChameleon ? undefined : secretWord}
+                  isKiwi={isKiwi}
+                  coordinate={isKiwi ? undefined : coordinate}
+                  secretWord={isKiwi ? undefined : secretWord}
                 />
               </div>
             )}
@@ -454,9 +454,9 @@ export default function Play() {
                 <TopicCard
                   topic={topicCard.topic}
                   words={topicCard.words}
-                  secretWordIndex={isChameleon ? undefined : secretWordIdx}
-                  showSecret={!isChameleon && (game.phase === 'CLUE_GIVING' || game.phase === 'VOTING')}
-                  selectable={game.phase === 'CHAMELEON_GUESS' && isChameleon}
+                  secretWordIndex={isKiwi ? undefined : secretWordIdx}
+                  showSecret={!isKiwi && (game.phase === 'CLUE_GIVING' || game.phase === 'VOTING')}
+                  selectable={game.phase === 'KIWI_GUESS' && isKiwi}
                   selectedIndex={selectedGuess}
                   onSelect={setSelectedGuess}
                 />
@@ -528,7 +528,7 @@ export default function Play() {
             {game.phase === 'VOTING' && (
               <div className="card mb-lg fade-in">
                 <h3 className="title-md mb-md">🗳️ Cast Your Vote</h3>
-                <p className="subtitle mb-md">Who do you think is the Chameleon?</p>
+                <p className="subtitle mb-md">Who do you think is the Kiwi?</p>
 
                 {/* Clue recap during voting */}
                 <div className="clue-recap mb-lg">
@@ -587,12 +587,12 @@ export default function Play() {
               </div>
             )}
 
-            {/* CHAMELEON_GUESS phase */}
-            {game.phase === 'CHAMELEON_GUESS' && (
+            {/* KIWI_GUESS phase */}
+            {game.phase === 'KIWI_GUESS' && (
               <div className="card mb-lg fade-in">
-                <h3 className="title-md mb-md">🦎 The Chameleon Was Caught!</h3>
+                <h3 className="title-md mb-md">🥝 The Kiwi Was Caught!</h3>
 
-                {isChameleon ? (
+                {isKiwi ? (
                   <>
                     <p className="subtitle mb-md">
                       🚨 Busted! But you've got one last trick — guess the secret word to escape!
@@ -600,8 +600,8 @@ export default function Play() {
                     {selectedGuess !== null && (
                       <button
                         className="btn btn-primary btn-lg btn-full mt-md"
-                        onClick={handleChameleonGuess}
-                        id="btn-chameleon-guess"
+                        onClick={handleKiwiGuess}
+                        id="btn-kiwi-guess"
                       >
                         🎲 Guess: "{topicCard.words[selectedGuess]}"
                       </button>
@@ -610,7 +610,7 @@ export default function Play() {
                 ) : (
                   <div className="status-bar">
                     <span className="pulse">●</span>
-                    🦎 The Chameleon is sweating... picking a word...
+                    🥝 The Kiwi is sweating... picking a word...
                   </div>
                 )}
               </div>
@@ -620,8 +620,8 @@ export default function Play() {
             {game.phase === 'SCORING' && lastRound && (
               <div className="card mb-lg fade-in">
                 {/* Celebration animations */}
-                {lastRound.chameleonCaught && !lastRound.chameleonGuessedCorrectly && <Confetti />}
-                {!lastRound.chameleonCaught && <ChameleonEscape />}
+                {lastRound.kiwiCaught && !lastRound.kiwiGuessedCorrectly && <Confetti />}
+                {!lastRound.kiwiCaught && <KiwiEscape />}
 
                 <div className="scoring-reveal text-center mb-lg">
                   <h3 className="title-lg mb-sm">Round {lastRound.round} Results</h3>
@@ -630,10 +630,10 @@ export default function Play() {
                     <p>Topic: <strong>{lastRound.topic}</strong></p>
                     <p>Secret Word: <strong className="highlight-word">{lastRound.secretWord}</strong></p>
                     <p>
-                      Chameleon: <strong>{lastRound.chameleonName}</strong>
-                      {lastRound.chameleonCaught
-                        ? lastRound.chameleonGuessedCorrectly
-                          ? <span className="badge badge-amber" style={{ marginLeft: 8 }}>Guessed correctly! 🦎</span>
+                      Kiwi: <strong>{lastRound.kiwiName}</strong>
+                      {lastRound.kiwiCaught
+                        ? lastRound.kiwiGuessedCorrectly
+                          ? <span className="badge badge-amber" style={{ marginLeft: 8 }}>Guessed correctly! 🥝</span>
                           : <span className="badge badge-green" style={{ marginLeft: 8 }}>Caught! 🎯</span>
                         : <span className="badge badge-red" style={{ marginLeft: 8 }}>Escaped! 💨</span>}
                     </p>
@@ -647,15 +647,15 @@ export default function Play() {
                     {game.turnOrder.map((pid, i) => {
                       const p = game.players[pid];
                       if (!p) return null;
-                      const isCham = pid === game.chameleonId;
+                      const isCham = pid === game.kiwiId;
                       return (
                         <div
                           key={pid}
-                          className={`clue-roast-item fade-in ${isCham ? 'is-chameleon' : ''}`}
+                          className={`clue-roast-item fade-in ${isCham ? 'is-kiwi' : ''}`}
                           style={{ animationDelay: `${i * 0.1}s` }}
                         >
                           <div className="clue-roast-header">
-                            <span className="clue-author">{p.name}{isCham ? ' 🦎' : ''}:</span>
+                            <span className="clue-author">{p.name}{isCham ? ' 🥝' : ''}:</span>
                             <span className="clue-text">"{p.clue}"</span>
                           </div>
                           <div className="clue-roast-text">

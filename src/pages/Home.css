@@ -2,17 +2,18 @@
   margin-bottom: 2.5rem;
 }
 
-.home-chameleon-icon {
-  font-size: 4rem;
+.home-kiwi-main-img {
+  width: 100%;
+  max-width: 320px;
+  height: auto;
   display: block;
-  margin-bottom: 0.5rem;
-  animation: chameleon-float 3s ease-in-out infinite;
+  margin: 0 auto 0.5rem auto;
+  animation: kiwi-float 4s ease-in-out infinite;
 }
 
-@keyframes chameleon-float {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  25% { transform: translateY(-6px) rotate(3deg); }
-  75% { transform: translateY(3px) rotate(-2deg); }
+@keyframes kiwi-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
 }
 
 .home-actions {

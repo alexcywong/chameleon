@@ -50,10 +50,10 @@ export default function ScoreBoard({ players, roundHistory, showFinal = false }:
               <span className="round-number">R{round.round}</span>
               <span className="round-topic">{round.topic}</span>
               <span className="round-word">"{round.secretWord}"</span>
-              <span className={`round-result ${round.chameleonCaught ? 'caught' : 'escaped'}`}>
-                {round.chameleonCaught
-                  ? round.chameleonGuessedCorrectly
-                    ? `🦎 Guessed "${round.guessedWord}" (Correct)!`
+              <span className={`round-result ${round.kiwiCaught ? 'caught' : 'escaped'}`}>
+                {round.kiwiCaught
+                  ? round.kiwiGuessedCorrectly
+                    ? `🥝 Guessed "${round.guessedWord}" (Correct)!`
                     : `🎯 Caught! Guessed "${round.guessedWord}"`
                   : '💨 Escaped!'}
               </span>

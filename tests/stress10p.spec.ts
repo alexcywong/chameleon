@@ -43,11 +43,11 @@ async function playFullGame(page: Page, gameNum: number): Promise<string> {
       if (await page.locator('.word-cell.is-guess-option').isVisible({ timeout: 200 }).catch(() => false)) break;
     }
 
-    // CHAMELEON_GUESS (before voting — if we're the chameleon)
+    // KIWI_GUESS (before voting — if we're the kiwi)
     if (await page.locator('.word-cell.is-guess-option').isVisible({ timeout: 500 }).catch(() => false)) {
       await page.locator('.word-cell.is-guess-option').first().click();
       await page.waitForTimeout(400);
-      const guessBtn = page.locator('#btn-chameleon-guess');
+      const guessBtn = page.locator('#btn-kiwi-guess');
       if (await guessBtn.isVisible({ timeout: 500 }).catch(() => false)) {
         await guessBtn.click();
       }
@@ -79,7 +79,7 @@ async function playFullGame(page: Page, gameNum: number): Promise<string> {
       if (await guessOption.isVisible({ timeout: 200 }).catch(() => false)) {
         await guessOption.click();
         await page.waitForTimeout(300);
-        const guessBtn = page.locator('#btn-chameleon-guess');
+        const guessBtn = page.locator('#btn-kiwi-guess');
         if (await guessBtn.isVisible({ timeout: 300 }).catch(() => false)) {
           await guessBtn.click();
         }

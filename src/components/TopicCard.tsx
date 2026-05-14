@@ -4,7 +4,7 @@ import './TopicCard.css';
 interface TopicCardProps {
   topic: string;
   words: string[];
-  secretWordIndex?: number; // -1 or undefined if chameleon
+  secretWordIndex?: number; // -1 or undefined if kiwi
   showSecret?: boolean;
   selectable?: boolean;
   selectedIndex?: number | null;

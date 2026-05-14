@@ -1,10 +1,10 @@
-import './ChameleonEscape.css';
+import './KiwiEscape.css';
 
-export default function ChameleonEscape() {
+export default function KiwiEscape() {
   return (
     <div className="escape-container" aria-hidden="true">
-      <div className="escape-chameleon">
-        <span className="escape-emoji">🦎</span>
+      <div className="escape-kiwi">
+        <img src="/images/kiwi-shrug.jpg" alt="Escaped!" className="escape-emoji" style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover' }} />
         <span className="escape-laugh">😂</span>
       </div>
       <div className="escape-smoke">
