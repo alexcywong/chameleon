@@ -3,6 +3,7 @@ import { createServer } from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import topicCardsData from '../src/data/words.json';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -167,6 +168,7 @@ function handleChameleonGuessOnServer(gameId: string) {
     chameleonName: game.players[game.chameleonId]?.name || 'Unknown',
     chameleonCaught: true,
     chameleonGuessedCorrectly: correct,
+    guessedWord,
     scores,
   };
   game.roundHistory = [...(game.roundHistory || []), result];
@@ -177,37 +179,97 @@ function handleChameleonGuessOnServer(gameId: string) {
 }
 
 // ── Code card / topic helpers (server side) ─────────────
-// Inline the word list reading
-import { readFileSync } from 'fs';
-
-let _topicCards: { topic: string; words: string[] }[] | null = null;
 function getTopicCards() {
-  if (_topicCards) return _topicCards;
-  try {
-    const fp = path.join(__dirname, '../src/data/words.json');
-    _topicCards = JSON.parse(readFileSync(fp, 'utf8'));
-  } catch {
-    _topicCards = [];
-  }
-  return _topicCards!;
+  return topicCardsData;
 }
 
-// Code card sets (same as client codeCards.ts)
-const codeCardSets = [
-  [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
-  [3,0,1,2,7,4,5,6,11,8,9,10,15,12,13,14],
-  [15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0],
-  [12,13,14,15,8,9,10,11,4,5,6,7,0,1,2,3],
-  [1,3,0,2,5,7,4,6,9,11,8,10,13,15,12,14],
-  [2,0,3,1,6,4,7,5,10,8,11,9,14,12,15,13],
+const codeCards = [
+  // Card 1
+  {
+    '1,1': 'A1', '1,2': 'C3', '1,3': 'B2', '1,4': 'D4', '1,5': 'A3', '1,6': 'B1',
+    '2,1': 'D2', '2,2': 'A4', '2,3': 'C1', '2,4': 'B3', '2,5': 'D1', '2,6': 'A2',
+    '3,1': 'B4', '3,2': 'D3', '3,3': 'A2', '3,4': 'C4', '3,5': 'B1', '3,6': 'A4',
+    '4,1': 'C2', '4,2': 'B3', '4,3': 'D1', '4,4': 'A1', '4,5': 'C4', '4,6': 'D3',
+    '5,1': 'A3', '5,2': 'C1', '5,3': 'B4', '5,4': 'D2', '5,5': 'A4', '5,6': 'C3',
+    '6,1': 'B2', '6,2': 'D4', '6,3': 'C2', '6,4': 'A1', '6,5': 'B3', '6,6': 'D1',
+  },
+  // Card 2
+  {
+    '1,1': 'B3', '1,2': 'A1', '1,3': 'D2', '1,4': 'C4', '1,5': 'A2', '1,6': 'B4',
+    '2,1': 'C1', '2,2': 'D4', '2,3': 'A3', '2,4': 'B1', '2,5': 'C3', '2,6': 'D2',
+    '3,1': 'A4', '3,2': 'B2', '3,3': 'C1', '3,4': 'D3', '3,5': 'B4', '3,6': 'A1',
+    '4,1': 'D1', '4,2': 'C3', '4,3': 'A2', '4,4': 'B3', '4,5': 'D4', '4,6': 'C2',
+    '5,1': 'B1', '5,2': 'A4', '5,3': 'D3', '5,4': 'C2', '5,5': 'A1', '5,6': 'B2',
+    '6,1': 'C4', '6,2': 'D1', '6,3': 'B4', '6,4': 'A3', '6,5': 'C1', '6,6': 'D4',
+  },
+  // Card 3
+  {
+    '1,1': 'D4', '1,2': 'B1', '1,3': 'A3', '1,4': 'C2', '1,5': 'D1', '1,6': 'A4',
+    '2,1': 'A2', '2,2': 'C4', '2,3': 'B3', '2,4': 'D2', '2,5': 'A1', '2,6': 'C3',
+    '3,1': 'C1', '3,2': 'A2', '3,3': 'D4', '3,4': 'B1', '3,5': 'C3', '3,6': 'B4',
+    '4,1': 'B2', '4,2': 'D3', '4,3': 'C1', '4,4': 'A4', '4,5': 'B3', '4,6': 'D2',
+    '5,1': 'A1', '5,2': 'B4', '5,3': 'D1', '5,4': 'C4', '5,5': 'A3', '5,6': 'B2',
+    '6,1': 'D3', '6,2': 'C2', '6,3': 'A2', '6,4': 'B3', '6,5': 'D4', '6,6': 'A1',
+  },
+  // Card 4
+  {
+    '1,1': 'C2', '1,2': 'D1', '1,3': 'A4', '1,4': 'B3', '1,5': 'C4', '1,6': 'D3',
+    '2,1': 'B1', '2,2': 'A3', '2,3': 'D4', '2,4': 'C1', '2,5': 'B2', '2,6': 'A4',
+    '3,1': 'A2', '3,2': 'C3', '3,3': 'B4', '3,4': 'D2', '3,5': 'A1', '3,6': 'C4',
+    '4,1': 'D3', '4,2': 'B2', '4,3': 'C1', '4,4': 'A3', '4,5': 'D4', '4,6': 'B1',
+    '5,1': 'C4', '5,2': 'A1', '5,3': 'B3', '5,4': 'D1', '5,5': 'C2', '5,6': 'A3',
+    '6,1': 'A4', '6,2': 'D2', '6,3': 'A1', '6,4': 'B4', '6,5': 'C3', '6,6': 'D1',
+  },
+  // Card 5
+  {
+    '1,1': 'A3', '1,2': 'B4', '1,3': 'C1', '1,4': 'D2', '1,5': 'A4', '1,6': 'B1',
+    '2,1': 'D1', '2,2': 'C2', '2,3': 'A2', '2,4': 'B3', '2,5': 'D4', '2,6': 'C3',
+    '3,1': 'B2', '3,2': 'A1', '3,3': 'D3', '3,4': 'C4', '3,5': 'B1', '3,6': 'A4',
+    '4,1': 'C3', '4,2': 'D4', '4,3': 'B2', '4,4': 'A1', '4,5': 'C1', '4,6': 'D2',
+    '5,1': 'A4', '5,2': 'B3', '5,3': 'C4', '5,4': 'D1', '5,5': 'A2', '5,6': 'B4',
+    '6,1': 'D2', '6,2': 'C1', '6,3': 'A3', '6,4': 'B2', '6,5': 'D3', '6,6': 'C4',
+  },
+  // Card 6
+  {
+    '1,1': 'B4', '1,2': 'A2', '1,3': 'D1', '1,4': 'C3', '1,5': 'B2', '1,6': 'A1',
+    '2,1': 'C4', '2,2': 'D3', '2,3': 'B1', '2,4': 'A4', '2,5': 'C2', '2,6': 'D1',
+    '3,1': 'A1', '3,2': 'B3', '3,3': 'C4', '3,4': 'D2', '3,5': 'A3', '3,6': 'B4',
+    '4,1': 'D4', '4,2': 'C1', '4,3': 'A3', '4,4': 'B2', '4,5': 'D1', '4,6': 'C3',
+    '5,1': 'B1', '5,2': 'A4', '5,3': 'D2', '5,4': 'C1', '5,5': 'B3', '5,6': 'A2',
+    '6,1': 'C2', '6,2': 'D4', '6,3': 'B3', '6,4': 'A1', '6,5': 'C4', '6,6': 'D3',
+  },
+  // Card 7
+  {
+    '1,1': 'D1', '1,2': 'C4', '1,3': 'B3', '1,4': 'A2', '1,5': 'D3', '1,6': 'C1',
+    '2,1': 'A4', '2,2': 'B1', '2,3': 'C2', '2,4': 'D4', '2,5': 'A3', '2,6': 'B2',
+    '3,1': 'C3', '3,2': 'D2', '3,3': 'A1', '3,4': 'B4', '3,5': 'C1', '3,6': 'D3',
+    '4,1': 'B2', '4,2': 'A3', '4,3': 'D4', '4,4': 'C1', '4,5': 'B4', '4,6': 'A2',
+    '5,1': 'D3', '5,2': 'C2', '5,3': 'A4', '5,4': 'B1', '5,5': 'D2', '5,6': 'C4',
+    '6,1': 'A1', '6,2': 'B4', '6,3': 'C3', '6,4': 'D2', '6,5': 'A4', '6,6': 'B3',
+  },
+  // Card 8
+  {
+    '1,1': 'C1', '1,2': 'D3', '1,3': 'A2', '1,4': 'B4', '1,5': 'C3', '1,6': 'D2',
+    '2,1': 'B2', '2,2': 'A4', '2,3': 'D1', '2,4': 'C3', '2,5': 'B1', '2,6': 'A1',
+    '3,1': 'D4', '3,2': 'C1', '3,3': 'B3', '3,4': 'A2', '3,5': 'D2', '3,6': 'C4',
+    '4,1': 'A3', '4,2': 'B2', '4,3': 'C4', '4,4': 'D1', '4,5': 'A1', '4,6': 'B3',
+    '5,1': 'C2', '5,2': 'D4', '5,3': 'A1', '5,4': 'B3', '5,5': 'C4', '5,6': 'D1',
+    '6,1': 'B4', '6,2': 'A3', '6,3': 'D2', '6,4': 'C2', '6,5': 'B1', '6,6': 'A4',
+  },
 ];
 
-function getSecretWordIndex(setIndex: number, diceY: number, diceB: number): number {
-  const set = codeCardSets[setIndex % codeCardSets.length];
-  const row = ((diceY - 1) % 4);
-  const col = ((diceB - 1) % 4);
-  const gridIndex = row * 4 + col;
-  return set[gridIndex];
+function coordinateToIndex(coord: string): number {
+  const row = coord.charCodeAt(0) - 65; // A=0, B=1, C=2, D=3
+  const col = parseInt(coord[1]) - 1;   // 1=0, 2=1, 3=2, 4=3
+  return row * 4 + col;
+}
+
+function getSecretWordIndex(codeCardIndex: number, diceYellow: number, diceBlue: number): number {
+  const card = codeCards[codeCardIndex % codeCards.length] as Record<string, string>;
+  const key = `${diceYellow},${diceBlue}`;
+  const coord = card[key];
+  if (!coord) return 0;
+  return coordinateToIndex(coord);
 }
 
 function handleMessage(ws: WebSocket, raw: string) {

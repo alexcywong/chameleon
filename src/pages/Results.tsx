@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useGameStore, { loadCachedRoundHistory } from '../stores/gameStore';
 import { useGameSync } from '../hooks/useGameSync';
@@ -102,7 +102,7 @@ export default function Results() {
     `${winner?.name} saw through every disguise! 🔍`,
     `${winner?.name} blended in AND stood out! 🦎`,
   ];
-  const winMessage = wittyMessages[Math.floor(Math.random() * wittyMessages.length)];
+  const winMessage = useMemo(() => wittyMessages[Math.floor(Math.random() * wittyMessages.length)], [winner?.name]);
 
   async function handlePlayAgain() {
     if (!gameId || !game) return;

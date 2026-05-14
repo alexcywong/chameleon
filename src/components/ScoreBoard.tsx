@@ -53,8 +53,8 @@ export default function ScoreBoard({ players, roundHistory, showFinal = false }:
               <span className={`round-result ${round.chameleonCaught ? 'caught' : 'escaped'}`}>
                 {round.chameleonCaught
                   ? round.chameleonGuessedCorrectly
-                    ? '🦎 Guessed!'
-                    : '🎯 Caught!'
+                    ? `🦎 Guessed "${round.guessedWord}" (Correct)!`
+                    : `🎯 Caught! Guessed "${round.guessedWord}"`
                   : '💨 Escaped!'}
               </span>
             </div>

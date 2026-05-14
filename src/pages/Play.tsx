@@ -229,7 +229,7 @@ export default function Play() {
         const secretIdx = getSecretWordIndex(g.codeCardSetIndex, g.diceYellow, g.diceBlue);
         const correct = guessIdx === secretIdx;
         const { scores, chameleonCaught } = calculateRoundScores(g, g.chameleonId, correct);
-        const result = buildRoundResult(g, topicCard.words[secretIdx], chameleonCaught, correct, scores);
+        const result = buildRoundResult(g, topicCard.words[secretIdx], chameleonCaught, correct, scores, guessedWord);
         const updatedPlayers = { ...g.players };
         for (const [id, pts] of Object.entries(scores)) {
           if (updatedPlayers[id]) {
@@ -357,7 +357,7 @@ export default function Play() {
     // Local mode: calculate scores on the client
     const correct = selectedGuess === secretWordIdx;
     const { scores, chameleonCaught } = calculateRoundScores(game, game.chameleonId, correct);
-    const result = buildRoundResult(game, secretWord, chameleonCaught, correct, scores);
+    const result = buildRoundResult(game, secretWord, chameleonCaught, correct, scores, guessedWord);
 
     const updatedPlayers = { ...game.players };
     for (const [id, pts] of Object.entries(scores)) {
@@ -613,6 +613,7 @@ export default function Play() {
                   votedId={votedPlayer || game.players[playerId]?.vote || undefined}
                   onVote={setVotedPlayer}
                   hideCheck={true}
+                  showClues={true}
                 />
 
                 {votedPlayer && !game.players[playerId]?.vote && (

@@ -29,6 +29,7 @@ export interface RoundResult {
   chameleonName: string;
   chameleonCaught: boolean;
   chameleonGuessedCorrectly: boolean;
+  guessedWord?: string;
   scores: Record<string, number>;
 }
 

@@ -27,6 +27,7 @@ interface PlayerListProps {
   showVoteCounts?: boolean;
   showVoteCheck?: boolean; // When true, ✓ means voted; when false, ✓ means clue submitted
   hideCheck?: boolean;     // When true, suppress all checkmarks entirely
+  showClues?: boolean;     // When true, displays the player's clue next to their name
 }
 
 export default function PlayerList({
@@ -42,6 +43,7 @@ export default function PlayerList({
   showVoteCounts = false,
   showVoteCheck = false,
   hideCheck = false,
+  showClues = false,
 }: PlayerListProps) {
   const compact = players.length > 6;
 
@@ -73,6 +75,11 @@ export default function PlayerList({
               {isMe && <span className="player-you-tag"> (you)</span>}
               {player.isHost && <span className="player-host-tag"> 👑</span>}
             </span>
+            {showClues && player.clue && (
+              <span className="player-clue" style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.9rem', marginRight: '0.5rem' }}>
+                "{player.clue}"
+              </span>
+            )}
             {!hideCheck && (showVoteCheck ? player.vote !== '' : player.hasSubmitted) && (
               <span className="player-check">✓</span>
             )}

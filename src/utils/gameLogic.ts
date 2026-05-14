@@ -207,7 +207,8 @@ export function buildRoundResult(
   secretWord: string,
   chameleonCaught: boolean,
   chameleonGuessedCorrectly: boolean,
-  scores: Record<string, number>
+  scores: Record<string, number>,
+  guessedWord?: string
 ): RoundResult {
   const chameleon = state.players[state.chameleonId];
   return {
@@ -218,6 +219,7 @@ export function buildRoundResult(
     chameleonName: chameleon?.name || 'Unknown',
     chameleonCaught,
     chameleonGuessedCorrectly,
+    guessedWord,
     scores,
   };
 }
