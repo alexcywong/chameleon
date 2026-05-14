@@ -1,8 +1,9 @@
 import { create } from 'zustand';
-import type { GameState, GamePhase, Player } from '../types/game';
+import type { GameState, GamePhase, Player, RoundResult } from '../types/game';
 
 // Session persistence helpers — use localStorage so state survives tab close + refresh
 const SESSION_KEY = 'chameleon_session';
+const ROUND_HISTORY_KEY = 'chameleon_round_history';
 
 function saveSession(gameId: string | null, playerId: string | null, playerName: string) {
   if (gameId && playerId) {
@@ -20,6 +21,25 @@ function loadSession(): { gameId: string | null; playerId: string | null; player
 
 function clearSession() {
   localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(ROUND_HISTORY_KEY);
+}
+
+/** Cache round history to localStorage so results page can recover from disconnection */
+function cacheRoundHistory(gameId: string, roundHistory: RoundResult[], players: Record<string, Player>) {
+  try {
+    localStorage.setItem(ROUND_HISTORY_KEY, JSON.stringify({ gameId, roundHistory, players }));
+  } catch { /* ignore — storage quota */ }
+}
+
+/** Load cached round history for results fallback */
+export function loadCachedRoundHistory(gameId: string): { roundHistory: RoundResult[]; players: Record<string, Player> } | null {
+  try {
+    const raw = localStorage.getItem(ROUND_HISTORY_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (data.gameId === gameId) return data;
+  } catch { /* ignore */ }
+  return null;
 }
 
 const saved = loadSession();
@@ -30,6 +50,7 @@ interface GameStore {
   playerId: string | null;
   playerName: string;
   isConnected: boolean;
+  isReconnecting: boolean;
 
   // Game state (synced with server)
   game: GameState | null;
@@ -44,6 +65,7 @@ interface GameStore {
   setPlayerName: (name: string) => void;
   setGame: (game: GameState | null) => void;
   setConnected: (connected: boolean) => void;
+  setReconnecting: (reconnecting: boolean) => void;
   setError: (error: string | null) => void;
   setLoading: (loading: boolean) => void;
   reset: () => void;
@@ -62,6 +84,7 @@ const useGameStore = create<GameStore>((set, get) => ({
   playerId: saved.playerId,
   playerName: saved.playerName,
   isConnected: false,
+  isReconnecting: false,
   game: null,
   error: null,
   isLoading: false,
@@ -81,8 +104,15 @@ const useGameStore = create<GameStore>((set, get) => ({
     const s = get();
     saveSession(s.gameId, s.playerId, name);
   },
-  setGame: (game) => set({ game }),
+  setGame: (game) => {
+    set({ game });
+    // Cache round history whenever it updates (for results fallback)
+    if (game && game.roundHistory && game.roundHistory.length > 0) {
+      cacheRoundHistory(game.gameId, game.roundHistory as RoundResult[], game.players);
+    }
+  },
   setConnected: (connected) => set({ isConnected: connected }),
+  setReconnecting: (reconnecting) => set({ isReconnecting: reconnecting }),
   setError: (error) => set({ error }),
   setLoading: (loading) => set({ isLoading: loading }),
   reset: () => {
@@ -92,6 +122,7 @@ const useGameStore = create<GameStore>((set, get) => ({
       playerId: null,
       playerName: '',
       isConnected: false,
+      isReconnecting: false,
       game: null,
       error: null,
       isLoading: false,

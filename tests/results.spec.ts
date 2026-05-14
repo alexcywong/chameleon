@@ -120,8 +120,9 @@ test.describe('Results Page', () => {
     const playAgainBtn = page.locator('#btn-play-again');
     if (await playAgainBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
       await playAgainBtn.click();
-      await page.waitForURL('/');
-      await expect(page.locator('h1')).toContainText('Chameleon');
+      // Play Again returns all players to the lobby (not home)
+      await page.waitForURL(/\/lobby\//, { timeout: 15000 });
+      await expect(page.locator('h1')).toContainText('Waiting Room');
     }
   });
 });

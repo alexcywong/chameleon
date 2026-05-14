@@ -21,6 +21,7 @@ interface GameState {
   turnOrder: string[]; currentTurnIndex: number;
   chameleonGuess: string; roundHistory: unknown[];
   createdAt: number;
+  lastScoredRound?: number; // Guard against double-scoring
 }
 
 type WsMessage =
@@ -30,7 +31,8 @@ type WsMessage =
   | { type: 'UPDATE_GAME'; gameId: string; updates: Partial<GameState> }
   | { type: 'UPDATE_PLAYER'; gameId: string; playerId: string; updates: Record<string, unknown> }
   | { type: 'DELETE_GAME'; gameId: string }
-  | { type: 'SUBSCRIBE'; gameId: string };
+  | { type: 'SUBSCRIBE'; gameId: string }
+  | { type: 'PING' };
 
 // ── Game Store ─────────────────────────────────────────
 const games = new Map<string, GameState>();
@@ -56,6 +58,12 @@ function broadcast(gameId: string) {
 function checkAllVotesAndAdvance(gameId: string) {
   const game = games.get(gameId);
   if (!game || game.phase !== 'VOTING') return;
+
+  // Double-scoring guard: don't score the same round twice
+  if (game.lastScoredRound !== undefined && game.lastScoredRound >= game.currentRound) {
+    console.log(`⚠️ Skipping vote tally for game ${gameId} round ${game.currentRound} — already scored`);
+    return;
+  }
 
   const players = Object.values(game.players);
   const allVoted = players.every(p => p.vote !== '');
@@ -109,6 +117,7 @@ function checkAllVotesAndAdvance(gameId: string) {
     };
     game.roundHistory = [...(game.roundHistory || []), result];
     game.phase = 'SCORING';
+    game.lastScoredRound = game.currentRound; // Mark as scored
   }
 
   games.set(gameId, { ...game });
@@ -121,6 +130,12 @@ function checkAllVotesAndAdvance(gameId: string) {
 function handleChameleonGuessOnServer(gameId: string) {
   const game = games.get(gameId);
   if (!game || game.phase !== 'CHAMELEON_GUESS' || !game.chameleonGuess) return;
+
+  // Double-scoring guard
+  if (game.lastScoredRound !== undefined && game.lastScoredRound >= game.currentRound) {
+    console.log(`⚠️ Skipping chameleon guess scoring for game ${gameId} round ${game.currentRound} — already scored`);
+    return;
+  }
 
   const topicCards = getTopicCards();
   const topicCard = topicCards[game.topicIndex % topicCards.length];
@@ -156,6 +171,7 @@ function handleChameleonGuessOnServer(gameId: string) {
   };
   game.roundHistory = [...(game.roundHistory || []), result];
   game.phase = 'SCORING';
+  game.lastScoredRound = game.currentRound; // Mark as scored
   games.set(gameId, { ...game });
   broadcast(gameId);
 }
@@ -198,6 +214,14 @@ function handleMessage(ws: WebSocket, raw: string) {
   let msg: WsMessage;
   try { msg = JSON.parse(raw); } catch { return; }
 
+  // Handle ping/pong for heartbeat
+  if (msg.type === 'PING') {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'PONG' }));
+    }
+    return;
+  }
+
   switch (msg.type) {
     case 'CREATE_GAME': {
       games.set(msg.gameId, msg.state);
@@ -223,6 +247,23 @@ function handleMessage(ws: WebSocket, raw: string) {
         console.log(`⚠️ UPDATE_GAME for unknown game ${msg.gameId}`);
         break;
       }
+
+      // === SCORE PROTECTION ===
+      // During non-LOBBY phases, the server is authoritative for player scores.
+      // Client updates that include players must NOT overwrite server-computed scores.
+      if (msg.updates.players && current.players && current.phase !== 'LOBBY') {
+        const isPlayAgainReset = msg.updates.phase === 'LOBBY';
+        if (!isPlayAgainReset) {
+          // Preserve server-side scores: copy current scores onto incoming player data
+          for (const [id, incomingPlayer] of Object.entries(msg.updates.players)) {
+            if (current.players[id] !== undefined) {
+              (incomingPlayer as Player).score = current.players[id].score;
+            }
+          }
+        }
+        // If it's a Play Again reset (phase going to LOBBY), allow score reset to 0
+      }
+
       // Handle players merge carefully:
       // - During LOBBY: merge players (add new joiners while keeping existing)
       //   BUT if player count decreased, it's a kick — use update as-is
@@ -269,6 +310,17 @@ function handleMessage(ws: WebSocket, raw: string) {
         ...cur.players[msg.playerId],
         ...msg.updates,
       } as Player;
+
+      // Never let client UPDATE_PLAYER overwrite scores during gameplay
+      if (cur.phase !== 'LOBBY' && 'score' in msg.updates) {
+        // Restore server-authoritative score — ignore client's score value
+        delete (msg.updates as Record<string, unknown>).score;
+        cur.players[msg.playerId] = {
+          ...cur.players[msg.playerId],
+          ...msg.updates,
+        } as Player;
+      }
+
       games.set(msg.gameId, { ...cur });
       broadcast(msg.gameId);
 

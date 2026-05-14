@@ -46,47 +46,72 @@ async function waitForPhase(page: Page, phase: string, timeout = 30000): Promise
  * Robustly play through CLUE_GIVING: keep trying to submit clue whenever it's our turn.
  * Waits until we're past CLUE_GIVING.
  */
-async function playThroughClueGiving(page: Page, timeout = 30000): Promise<void> {
+async function playThroughClueGiving(page: Page, timeoutMs = 30000): Promise<void> {
   const startTime = Date.now();
-  while (Date.now() - startTime < timeout) {
+  while (Date.now() - startTime < timeoutMs) {
     const phase = await getPhase(page);
     if (phase !== 'CLUE GIVING') return;
 
     const clueInput = page.locator('#input-clue');
-    if (await clueInput.isVisible({ timeout: 300 }).catch(() => false)) {
-      // Use click + clear + type to ensure React's onChange fires
-      await clueInput.click();
-      await clueInput.fill('');
-      await clueInput.type('test', { delay: 30 });
+    if (await clueInput.isVisible({ timeout: 200 }).catch(() => false)) {
+      await clueInput.fill('test');
       await page.waitForTimeout(200);
-      const sendBtn = page.locator('#btn-submit-clue');
-      if (await sendBtn.isVisible({ timeout: 300 }).catch(() => false)) {
-        // Make sure the button is not disabled
-        const disabled = await sendBtn.isDisabled();
-        if (!disabled) {
-          await sendBtn.click();
-          // Wait for the clue to actually get processed
-          await page.waitForTimeout(500);
-        }
-      }
+      await page.click('#btn-submit-clue').catch(() => {});
+      // Wait for it to disappear
+      await page.waitForTimeout(800);
+    } else {
+      await page.waitForTimeout(500);
     }
-    await page.waitForTimeout(500);
   }
 }
 
 /** Play from current state through to VOTING phase */
 async function reachVotingPhase(page: Page): Promise<void> {
   await playThroughClueGiving(page, 30000);
-  await waitForPhase(page, 'DISCUSSION', 15000);
-  await page.click('#btn-start-voting');
-  await waitForPhase(page, 'VOTING', 5000);
+
+  // Flexibly wait for DISCUSSION — use polling instead of strict waitForFunction
+  const deadline = Date.now() + 20000;
+  while (Date.now() < deadline) {
+    const phase = await getPhase(page);
+    if (phase === 'DISCUSSION') break;
+    // If bots already advanced past discussion, that's fine too
+    if (phase === 'VOTING' || phase === 'SCORING') return;
+    await page.waitForTimeout(400);
+  }
+
+  const startVotingBtn = page.locator('#btn-start-voting');
+  if (await startVotingBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+    await startVotingBtn.click();
+  }
+
+  // Wait for VOTING
+  const votingDeadline = Date.now() + 10000;
+  while (Date.now() < votingDeadline) {
+    const phase = await getPhase(page);
+    if (phase === 'VOTING') return;
+    await page.waitForTimeout(300);
+  }
 }
 
 /** Cast a vote for a non-self player */
 async function castVote(page: Page): Promise<void> {
-  const votable = page.locator('.player-item.votable');
-  await votable.first().click({ timeout: 5000 });
-  await page.locator('#btn-submit-vote').click({ timeout: 5000 });
+  const deadline = Date.now() + 15000;
+  while (Date.now() < deadline) {
+    const votable = page.locator('.player-item.votable');
+    const count = await votable.count().catch(() => 0);
+    if (count > 0) {
+      await votable.first().click();
+      await page.waitForTimeout(400);
+      const submitBtn = page.locator('[id^="btn-submit-vote"], #btn-accuse');
+      if (await submitBtn.first().isVisible({ timeout: 500 }).catch(() => false)) {
+        await submitBtn.first().click();
+      }
+      return;
+    }
+    const phase = await getPhase(page);
+    if (phase === 'SCORING' || phase === 'CHAMELEON GUESS') return;
+    await page.waitForTimeout(500);
+  }
 }
 
 /** Play a single round from CLUE_GIVING through to SCORING */

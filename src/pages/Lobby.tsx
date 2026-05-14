@@ -22,10 +22,11 @@ export default function Lobby() {
   const { roomCode } = useParams<{ roomCode: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const { gameId, setGameId, playerId, setPlayerId, setPlayerName, game, reset } = useGameStore();
+  const { gameId, setGameId, playerId, setPlayerId, setPlayerName, game, reset, isReconnecting } = useGameStore();
   const isHost = game?.hostId === playerId;
   const playerList = game ? Object.values(game.players) : [];
   const hadGameRef = useRef(false);
+  const nullGameTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Track if we ever had a valid game state
   useEffect(() => {
@@ -64,16 +65,36 @@ export default function Lobby() {
   }, [game, navigate]);
 
   // Detect game ended by host
+  // Uses a 5-second grace period for null game state to allow reconnection
   useEffect(() => {
     if (game?.phase === 'ENDED') {
+      if (nullGameTimerRef.current) { clearTimeout(nullGameTimerRef.current); nullGameTimerRef.current = null; }
       const timer = setTimeout(() => { reset(); navigate('/'); }, 100);
       return () => clearTimeout(timer);
+    }
+    // If game came back (reconnected), cancel any pending redirect
+    if (game !== null) {
+      if (nullGameTimerRef.current) { clearTimeout(nullGameTimerRef.current); nullGameTimerRef.current = null; }
+      return;
     }
     // Only treat null game as "ended" if we previously had a valid game
+    // Grace period: wait 5 seconds before redirecting (allows WebSocket reconnection)
     if (gameId && game === null && playerId && !isJoinRoute && hadGameRef.current) {
-      const timer = setTimeout(() => { reset(); navigate('/'); }, 100);
-      return () => clearTimeout(timer);
+      if (!nullGameTimerRef.current) {
+        nullGameTimerRef.current = setTimeout(() => {
+          const { game: currentGame } = useGameStore.getState();
+          if (currentGame === null) {
+            console.log('⏱️ Lobby: Game state null after grace period — redirecting home');
+            reset();
+            navigate('/');
+          }
+          nullGameTimerRef.current = null;
+        }, 5000);
+      }
     }
+    return () => {
+      if (nullGameTimerRef.current) { clearTimeout(nullGameTimerRef.current); nullGameTimerRef.current = null; }
+    };
   }, [game, gameId, playerId, isJoinRoute, reset, navigate]);
 
   const wasInGameRef = useRef(false);
@@ -232,7 +253,14 @@ export default function Lobby() {
     return (
       <div className="page page-center">
         <div className="app-bg" />
-        <div className="spinner" style={{ width: 40, height: 40 }} />
+        {isReconnecting ? (
+          <div className="reconnection-overlay fade-in">
+            <div className="spinner" style={{ width: 40, height: 40 }} />
+            <p style={{ color: 'var(--text-muted)', marginTop: '1rem' }}>Reconnecting to game...</p>
+          </div>
+        ) : (
+          <div className="spinner" style={{ width: 40, height: 40 }} />
+        )}
       </div>
     );
   }

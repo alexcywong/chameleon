@@ -7,6 +7,9 @@
 
 import type { GameState } from './types/game';
 
+type ConnectionState = 'connected' | 'reconnecting' | 'disconnected';
+type ConnectionCallback = (state: ConnectionState) => void;
+
 type GameApi = {
   createGame: (gameId: string, state: GameState) => Promise<void>;
   getGame: (gameId: string) => Promise<GameState | null>;
@@ -14,6 +17,8 @@ type GameApi = {
   updateGame: (gameId: string, updates: Partial<GameState>) => Promise<void>;
   updatePlayer: (gameId: string, playerId: string, updates: Record<string, unknown>) => Promise<void>;
   deleteGame: (gameId: string) => Promise<void>;
+  onConnectionChange?: (cb: ConnectionCallback) => () => void;
+  getConnectionState?: () => ConnectionState;
 };
 
 // Force local mode if explicitly set or running Playwright tests
@@ -29,6 +34,9 @@ async function loadLocalApi(): Promise<GameApi> {
     updateGame: local.updateGameLocal,
     updatePlayer: local.updatePlayerLocal,
     deleteGame: local.deleteGameLocal,
+    // Local mode is always "connected"
+    onConnectionChange: (cb: ConnectionCallback) => { cb('connected'); return () => {}; },
+    getConnectionState: () => 'connected' as ConnectionState,
   };
 }
 
@@ -41,6 +49,8 @@ async function loadWsApi(): Promise<GameApi> {
     updateGame: ws.updateGameWs,
     updatePlayer: ws.updatePlayerWs,
     deleteGame: ws.deleteGameWs,
+    onConnectionChange: ws.onConnectionChange,
+    getConnectionState: ws.getConnectionState,
   };
 }
 
@@ -66,6 +76,8 @@ export const {
   updateGame,
   updatePlayer,
   deleteGame,
+  onConnectionChange,
+  getConnectionState,
 } = api;
 
 export const isLocalMode = _isLocalMode;

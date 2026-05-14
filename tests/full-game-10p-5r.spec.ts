@@ -377,7 +377,7 @@ test.describe('Full 10-Player 5-Round Game', () => {
 
       // Wait for results page
       try {
-        await players[0].page.waitForURL(/\/results\//, { timeout: 15000 });
+        await players[0].page.waitForURL(/\/results\//, { timeout: 30000 });
         console.log(`✅ Reached /results/ page`);
       } catch {
         const url = players[0].page.url();

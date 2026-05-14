@@ -1,17 +1,24 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import useGameStore from '../stores/gameStore';
+import useGameStore, { loadCachedRoundHistory } from '../stores/gameStore';
 import { useGameSync } from '../hooks/useGameSync';
-import { updateGame } from '../gameApi';
+import { updateGame, getGame as fetchGame } from '../gameApi';
 import ScoreBoard from '../components/ScoreBoard';
+import type { Player, RoundResult } from '../types/game';
 import './Results.css';
 
 export default function Results() {
   const navigate = useNavigate();
-  const { game, gameId, playerId } = useGameStore();
+  const { game, gameId, playerId, isReconnecting } = useGameStore();
   const playerList = game ? Object.values(game.players) : [];
   const reset = useGameStore((s) => s.reset);
+  const setGame = useGameStore((s) => s.setGame);
   const isHost = game?.hostId === playerId;
+
+  // Fallback state: if game is null, try to recover from cache or fetch
+  const [fallbackData, setFallbackData] = useState<{ roundHistory: RoundResult[]; players: Record<string, Player> } | null>(null);
+  const [loadError, setLoadError] = useState(false);
+  const retryAttempted = useRef(false);
 
   useGameSync();
 
@@ -22,16 +29,72 @@ export default function Results() {
     }
   }, [game?.phase, gameId, navigate]);
 
-  if (!game) {
+  // If game is null, attempt recovery: fetch from server + fallback to localStorage cache
+  useEffect(() => {
+    if (game !== null || !gameId || retryAttempted.current) return;
+    retryAttempted.current = true;
+
+    // 1. Try fetching from server
+    fetchGame(gameId).then((fetched) => {
+      if (fetched) {
+        setGame(fetched);
+        return;
+      }
+      // 2. Fall back to localStorage cache
+      const cached = loadCachedRoundHistory(gameId);
+      if (cached) {
+        console.log('📦 Using cached round history for results display');
+        setFallbackData(cached);
+      } else {
+        // 3. Nothing available — show error after a delay
+        setTimeout(() => setLoadError(true), 3000);
+      }
+    }).catch(() => {
+      const cached = loadCachedRoundHistory(gameId);
+      if (cached) setFallbackData(cached);
+      else setTimeout(() => setLoadError(true), 3000);
+    });
+  }, [game, gameId, setGame]);
+
+  // Determine what data to display
+  const displayPlayers = game ? playerList : fallbackData ? Object.values(fallbackData.players) : [];
+  const displayRoundHistory = game?.roundHistory || fallbackData?.roundHistory || [];
+  const hasData = displayPlayers.length > 0 && displayRoundHistory.length > 0;
+
+  if (!hasData) {
+    if (loadError) {
+      return (
+        <div className="page page-center">
+          <div className="app-bg" />
+          <div className="container container-narrow text-center">
+            <div className="mb-lg fade-in">
+              <span className="chameleon-icon">🦎</span>
+              <h1 className="title-lg mb-sm">Connection Lost</h1>
+              <p className="subtitle">
+                The game session could not be recovered. This can happen if the game was ended or you were disconnected for too long.
+              </p>
+            </div>
+            <button className="btn btn-primary btn-lg" onClick={() => { reset(); navigate('/'); }}>
+              🏠 Return Home
+            </button>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="page page-center">
         <div className="app-bg" />
-        <div className="spinner" style={{ width: 40, height: 40 }} />
+        <div className="reconnection-overlay fade-in">
+          <div className="spinner" style={{ width: 40, height: 40 }} />
+          <p style={{ color: 'var(--text-muted)', marginTop: '1rem' }}>
+            {isReconnecting ? 'Reconnecting to game...' : 'Loading results...'}
+          </p>
+        </div>
       </div>
     );
   }
 
-  const sorted = [...playerList].sort((a, b) => b.score - a.score);
+  const sorted = [...displayPlayers].sort((a, b) => b.score - a.score);
   const winner = sorted[0];
   const wittyMessages = [
     `${winner?.name} absolutely crushed it! 🎉`,
@@ -99,14 +162,14 @@ export default function Results() {
 
         <div className="card mb-lg fade-in fade-in-delay-1">
           <ScoreBoard
-            players={playerList}
-            roundHistory={game.roundHistory || []}
+            players={displayPlayers}
+            roundHistory={displayRoundHistory}
             showFinal={true}
           />
         </div>
 
         <div className="text-center fade-in fade-in-delay-3">
-          {isHost ? (
+          {isHost && game ? (
             <button
               className="btn btn-primary btn-lg"
               onClick={handlePlayAgain}
@@ -114,14 +177,14 @@ export default function Results() {
             >
               🔄 Play Again with Everyone
             </button>
-          ) : (
+          ) : game ? (
             <div className="results-waiting">
               <div className="status-bar">
                 <span className="pulse">●</span>
                 Waiting for host to start a new game...
               </div>
             </div>
-          )}
+          ) : null}
 
           <button
             className="btn btn-outline btn-lg mt-md"
