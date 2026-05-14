@@ -1,0 +1,182 @@
+[
+  {
+    "topic": "Citrus Fruits",
+    "words": [
+      "Lemon", "Lime", "Orange", "Grapefruit",
+      "Tangerine", "Clementine", "Pomelo", "Yuzu",
+      "Mandarin", "Bergamot", "Kumquat", "Sudachi",
+      "Citron", "Calamansi", "Tangelo", "Blood Orange"
+    ]
+  },
+  {
+    "topic": "Social Media Apps",
+    "words": [
+      "Facebook", "Instagram", "Twitter", "TikTok",
+      "Snapchat", "LinkedIn", "Pinterest", "Reddit",
+      "Tumblr", "Discord", "WhatsApp", "Telegram",
+      "Signal", "WeChat", "Line", "Viber"
+    ]
+  },
+  {
+    "topic": "Fast Food Chains",
+    "words": [
+      "McDonald's", "Burger King", "Wendy's", "KFC",
+      "Subway", "Taco Bell", "Domino's", "Pizza Hut",
+      "Chipotle", "Popeyes", "Chick-fil-A", "In-N-Out",
+      "Five Guys", "Dairy Queen", "Sonic", "Arby's"
+    ]
+  },
+  {
+    "topic": "Car Brands",
+    "words": [
+      "Toyota", "Ford", "Honda", "Chevrolet",
+      "Nissan", "Volkswagen", "Hyundai", "Kia",
+      "BMW", "Mercedes-Benz", "Audi", "Lexus",
+      "Subaru", "Mazda", "Porsche", "Ferrari"
+    ]
+  },
+  {
+    "topic": "Coffee Drinks",
+    "words": [
+      "Espresso", "Macchiato", "Cortado", "Flat White",
+      "Cappuccino", "Latte", "Americano", "Mocha",
+      "Affogato", "Frappuccino", "Cold Brew", "Nitro",
+      "Irish Coffee", "Ristretto", "Lungo", "Breve"
+    ]
+  },
+  {
+    "topic": "Dog Breeds",
+    "words": [
+      "Golden Retriever", "Labrador", "Poodle", "Bulldog",
+      "Beagle", "Rottweiler", "Dachshund", "Corgi",
+      "Pug", "Husky", "Boxer", "Dalmatian",
+      "Chihuahua", "Shih Tzu", "Great Dane", "Doberman"
+    ]
+  },
+  {
+    "topic": "Programming Languages",
+    "words": [
+      "Python", "JavaScript", "Java", "C++",
+      "Ruby", "Go", "Swift", "Kotlin",
+      "Rust", "PHP", "TypeScript", "C#",
+      "Perl", "Scala", "Haskell", "Lua"
+    ]
+  },
+  {
+    "topic": "Card Games",
+    "words": [
+      "Poker", "Blackjack", "Solitaire", "Bridge",
+      "Rummy", "Hearts", "Spades", "Go Fish",
+      "Crazy Eights", "Uno", "Baccarat", "Pinochle",
+      "Cribbage", "Euchre", "War", "Old Maid"
+    ]
+  },
+  {
+    "topic": "Board Games",
+    "words": [
+      "Chess", "Checkers", "Monopoly", "Scrabble",
+      "Risk", "Clue", "Catan", "Ticket to Ride",
+      "Battleship", "Othello", "Backgammon", "Sorry",
+      "Pandemic", "Stratego", "Connect 4", "Guess Who"
+    ]
+  },
+  {
+    "topic": "European Capitals",
+    "words": [
+      "Paris", "London", "Berlin", "Rome",
+      "Madrid", "Vienna", "Amsterdam", "Prague",
+      "Warsaw", "Budapest", "Athens", "Lisbon",
+      "Dublin", "Stockholm", "Oslo", "Copenhagen"
+    ]
+  },
+  {
+    "topic": "Harry Potter Characters",
+    "words": [
+      "Harry", "Hermione", "Ron", "Dumbledore",
+      "Snape", "Voldemort", "Hagrid", "Sirius",
+      "Draco", "Dobby", "McGonagall", "Neville",
+      "Bellatrix", "Lupin", "Ginny", "Luna"
+    ]
+  },
+  {
+    "topic": "Marvel Superheroes",
+    "words": [
+      "Iron Man", "Spider-Man", "Captain America", "Thor",
+      "Hulk", "Black Widow", "Wolverine", "Black Panther",
+      "Doctor Strange", "Daredevil", "Deadpool", "Captain Marvel",
+      "Ant-Man", "Hawkeye", "Vision", "Scarlet Witch"
+    ]
+  },
+  {
+    "topic": "Planets & Moons",
+    "words": [
+      "Mercury", "Venus", "Earth", "Mars",
+      "Jupiter", "Saturn", "Uranus", "Neptune",
+      "Pluto", "Moon", "Titan", "Europa",
+      "Ganymede", "Callisto", "Io", "Phobos"
+    ]
+  },
+  {
+    "topic": "Streaming Services",
+    "words": [
+      "Netflix", "Hulu", "Amazon Prime", "Disney+",
+      "HBO Max", "Apple TV+", "Peacock", "Paramount+",
+      "Crunchyroll", "YouTube TV", "Sling", "Vudu",
+      "Roku", "Tubi", "Twitch", "Crackle"
+    ]
+  },
+  {
+    "topic": "Footwear",
+    "words": [
+      "Sneakers", "Boots", "Sandals", "Heels",
+      "Loafers", "Oxfords", "Slippers", "Crocs",
+      "Moccasins", "Wedges", "Flip Flops", "Cleats",
+      "Espadrilles", "Brogues", "Platforms", "Clogs"
+    ]
+  },
+  {
+    "topic": "Sports",
+    "words": [
+      "Football", "Basketball", "Baseball", "Soccer",
+      "Tennis", "Golf", "Ruggy", "Cricket",
+      "Hockey", "Volleyball", "Table Tennis", "Badminton",
+      "Boxing", "MMA", "Swimming", "Athletics"
+    ]
+  },
+  {
+    "topic": "Musical Instruments",
+    "words": [
+      "Guitar", "Piano", "Violin", "Drums",
+      "Flute", "Saxophone", "Trumpet", "Cello",
+      "Bass", "Clarinet", "Trombone", "Harp",
+      "Keyboard", "Banjo", "Ukulele", "Accordion"
+    ]
+  },
+  {
+    "topic": "Vegetables",
+    "words": [
+      "Carrot", "Broccoli", "Potato", "Tomato",
+      "Onion", "Garlic", "Spinach", "Lettuce",
+      "Pepper", "Cucumber", "Celery", "Mushroom",
+      "Cabbage", "Zucchini", "Eggplant", "Corn"
+    ]
+  },
+  {
+    "topic": "Metals",
+    "words": [
+      "Iron", "Gold", "Silver", "Copper",
+      "Aluminum", "Zinc", "Lead", "Platinum",
+      "Titanium", "Nickel", "Tin", "Bronze",
+      "Brass", "Steel", "Mercury", "Cobalt"
+    ]
+  },
+  {
+    "topic": "Gemstones",
+    "words": [
+      "Diamond", "Ruby", "Sapphire", "Emerald",
+      "Amethyst", "Topaz", "Opal", "Pearl",
+      "Jade", "Garnet", "Turquoise", "Onyx",
+      "Quartz", "Aquamarine", "Peridot", "Zircon"
+    ]
+  }
+]

@@ -3,7 +3,7 @@ import { createServer } from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import topicCardsData from '../src/data/words.json';
+import topicCardsData from './words.json';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
