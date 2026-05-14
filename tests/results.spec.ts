@@ -29,7 +29,7 @@ async function playToResults(page: Page): Promise<void> {
         await page.click('#btn-submit-clue');
         break;
       }
-      if (await page.locator('#btn-start-voting').isVisible({ timeout: 200 }).catch(() => false)) break;
+      if (await page.locator('text=Cast Your Vote').isVisible({ timeout: 200 }).catch(() => false)) break;
       if (await page.locator('.word-cell.is-guess-option').isVisible({ timeout: 200 }).catch(() => false)) break;
     }
 
@@ -43,14 +43,10 @@ async function playToResults(page: Page): Promise<void> {
       }
     }
 
-    // DISCUSSION: start voting
+    // Game now goes directly from CLUE_GIVING to VOTING (no discussion)
+    // Wait for voting or scoring to appear
     for (let i = 0; i < 10; i++) {
       await page.waitForTimeout(800);
-      const votingBtn = page.locator('#btn-start-voting');
-      if (await votingBtn.isVisible({ timeout: 200 }).catch(() => false)) {
-        await votingBtn.click();
-        break;
-      }
       if (await page.locator('text=Cast Your Vote').isVisible({ timeout: 200 }).catch(() => false)) break;
       if (await page.locator('#btn-next-round').isVisible({ timeout: 200 }).catch(() => false)) break;
     }

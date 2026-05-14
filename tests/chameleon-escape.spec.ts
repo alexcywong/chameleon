@@ -65,10 +65,9 @@ async function submitClueIfMyTurn(player: PlayerSession): Promise<void> {
       }
     }
     // Check if we've moved past clue phase
-    const discussion = await player.page.locator('text=Start Voting').isVisible({ timeout: 200 }).catch(() => false);
     const voting = await player.page.locator('text=Cast Your Vote').isVisible({ timeout: 200 }).catch(() => false);
     const scoring = await player.page.locator('text=Round Result').isVisible({ timeout: 200 }).catch(() => false);
-    if (discussion || voting || scoring) return;
+    if (voting || scoring) return;
     await player.page.waitForTimeout(500);
   }
 }
@@ -144,14 +143,8 @@ async function playOneRound(players: PlayerSession[], voteTarget?: string): Prom
   // 1. CLUE_GIVING: Each player submits clue when it's their turn
   await Promise.all(players.map(p => submitClueIfMyTurn(p)));
 
-  // 2. DISCUSSION: Host starts voting
-  const foundDiscussion = await waitForPhase(host.page, 'Start Voting', 15000);
-  if (foundDiscussion) {
-    const btn = host.page.locator('#btn-start-voting');
-    if (await btn.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await btn.click();
-    }
-  }
+  // 2. Wait for VOTING phase (game now skips discussion)
+  await waitForPhase(host.page, 'Cast Your Vote', 15000);
 
   // 3. VOTING: All players vote
   await host.page.waitForTimeout(1000);

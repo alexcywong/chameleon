@@ -56,11 +56,11 @@ test.describe('Gameplay — 3 Players', () => {
     // Wait for remaining bots and phase transition
     await page.waitForTimeout(3000);
 
-    // Should reach discussion or further
+    // Should reach voting or further
     const pageText = await page.textContent('body');
-    const advanced = pageText!.includes('Discussion') ||
-      pageText!.includes('Vote') ||
-      pageText!.includes('Clue submitted');
+    const advanced = pageText!.includes('Vote') ||
+      pageText!.includes('Clue submitted') ||
+      pageText!.includes('Cast Your Vote');
     expect(advanced).toBe(true);
   });
 
@@ -78,17 +78,10 @@ test.describe('Gameplay — 3 Players', () => {
       }
     }
 
-    // Phase 2: Wait for DISCUSSION
+    // Phase 2: Wait for VOTING (game skips discussion)
     await page.waitForTimeout(3000);
 
-    // Phase 3: If we see Discussion, start voting
-    const startVotingBtn = page.locator('#btn-start-voting');
-    if (await startVotingBtn.isVisible()) {
-      await startVotingBtn.click();
-    }
-    await page.waitForTimeout(2000);
-
-    // Phase 4: VOTING — bots auto-vote, we need to vote too
+    // Phase 3: VOTING — bots auto-vote, we need to vote too
     const voteSection = page.locator('text=Cast Your Vote');
     if (await voteSection.isVisible()) {
       // Vote for the first non-self player

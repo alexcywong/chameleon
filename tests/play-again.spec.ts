@@ -55,8 +55,7 @@ async function submitClueWhenMyTurn(player: PlayerSession): Promise<void> {
         return;
       }
     }
-    const past = await player.page.locator('#btn-start-voting').isVisible({ timeout: 200 }).catch(() => false) ||
-                 await player.page.locator('.player-item.votable').first().isVisible({ timeout: 200 }).catch(() => false);
+    const past = await player.page.locator('.player-item.votable').first().isVisible({ timeout: 200 }).catch(() => false);
     if (past) return;
     await player.page.waitForTimeout(300);
   }
@@ -134,10 +133,8 @@ test.describe('Play Again Flow', () => {
         await Promise.all(players.map(p => submitClueWhenMyTurn(p)));
         console.log(`  Round ${round}: Clues submitted`);
 
-        // Discussion → Voting
-        await waitForText(players[0].page, 'Start Voting', 15000);
-        const votingBtn = players[0].page.locator('#btn-start-voting');
-        if (await votingBtn.isVisible({ timeout: 3000 }).catch(() => false)) await votingBtn.click();
+        // Wait for voting phase (game skips discussion)
+        await waitForText(players[0].page, 'Cast Your Vote', 15000);
         await players[0].page.waitForTimeout(1000);
 
         // Vote
@@ -216,9 +213,7 @@ test.describe('Play Again Flow', () => {
 
       // Play round 1 of second game
       await Promise.all(players.map(p => submitClueWhenMyTurn(p)));
-      await waitForText(players[0].page, 'Start Voting', 15000);
-      const votingBtn2 = players[0].page.locator('#btn-start-voting');
-      if (await votingBtn2.isVisible({ timeout: 3000 }).catch(() => false)) await votingBtn2.click();
+      await waitForText(players[0].page, 'Cast Your Vote', 15000);
       await players[0].page.waitForTimeout(1000);
       await Promise.all(players.map(p => castVote(p)));
       await players[0].page.waitForTimeout(2000);

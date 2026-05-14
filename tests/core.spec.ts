@@ -60,30 +60,18 @@ async function submitClueWhenReady(page: Page, clue = 'test', timeoutMs = 30000)
   }
 }
 
-/** Wait until discussion or later phase, then click Start Voting if available */
-async function advanceToDiscussion(page: Page): Promise<void> {
+/** Wait until voting or later phase */
+async function advanceToVoting(page: Page): Promise<void> {
   await submitClueWhenReady(page);
   const deadline = Date.now() + 20000;
   while (Date.now() < deadline) {
     const phase = await getPhaseText(page);
-    if (phase === 'DISCUSSION' || phase === 'VOTING' || phase === 'SCORING') return;
+    if (phase === 'VOTING' || phase === 'SCORING' || phase === 'CHAMELEON GUESS') return;
     await page.waitForTimeout(400);
   }
 }
 
-async function advanceToVoting(page: Page): Promise<void> {
-  await advanceToDiscussion(page);
-  const startVotingBtn = page.locator('#btn-start-voting');
-  if (await startVotingBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-    await startVotingBtn.click();
-  }
-  const deadline = Date.now() + 10000;
-  while (Date.now() < deadline) {
-    const phase = await getPhaseText(page);
-    if (phase === 'VOTING' || phase === 'SCORING' || phase === 'CHAMELEON GUESS') return;
-    await page.waitForTimeout(300);
-  }
-}
+
 
 /**
  * Robustly play from voting through to SCORING.
@@ -120,7 +108,7 @@ async function playRoundToScoring(page: Page): Promise<void> {
   await page.waitForFunction(
     () => {
       const text = document.querySelector('.badge-green')?.textContent?.trim() || '';
-      return text !== 'VOTING' && text !== 'CLUE GIVING' && text !== 'DISCUSSION' && text !== '';
+      return text !== 'VOTING' && text !== 'CLUE GIVING' && text !== '';
     },
     null,
     { timeout: 30000 }
@@ -250,26 +238,30 @@ test.describe('Core Tests', () => {
     }
   });
 
-  // 8. Discussion phase shows all clues
-  test('8: discussion phase shows all player clues', async ({ page }) => {
+  // 8. Voting phase shows all player clues in recap
+  test('8: voting phase shows clue recap', async ({ page }) => {
     await createAndStartGame(page);
-    await advanceToDiscussion(page);
+    await advanceToVoting(page);
     const phase = await getPhaseText(page);
-    if (phase === 'DISCUSSION') {
-      const clues = page.locator('.clue-bubble');
-      const count = await clues.count();
-      expect(count).toBe(3);
+    if (phase === 'VOTING') {
+      // Clue recap is available via toggle
+      const toggle = page.locator('.clue-recap-toggle');
+      if (await toggle.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await toggle.click();
+        const roastList = page.locator('.clue-roast-list');
+        await expect(roastList).toBeVisible({ timeout: 3000 });
+      }
     }
   });
 
-  // 9. Discussion phase shows "Start Voting" button for host
-  test('9: host sees start voting button in discussion', async ({ page }) => {
+  // 9. After clue giving, game goes directly to voting (no discussion)
+  test('9: clue giving advances directly to voting', async ({ page }) => {
+    test.setTimeout(60_000);
     await createAndStartGame(page);
-    await advanceToDiscussion(page);
+    await advanceToVoting(page);
     const phase = await getPhaseText(page);
-    if (phase === 'DISCUSSION') {
-      await expect(page.locator('#btn-start-voting')).toBeVisible();
-    }
+    // The critical assertion: DISCUSSION phase never appears
+    expect(phase).not.toBe('DISCUSSION');
   });
 
   // 10. Voting phase shows all players as votable options

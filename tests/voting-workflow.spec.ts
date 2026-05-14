@@ -69,27 +69,12 @@ async function playThroughClueGiving(page: Page, timeoutMs = 30000): Promise<voi
 async function reachVotingPhase(page: Page): Promise<void> {
   await playThroughClueGiving(page, 30000);
 
-  // Flexibly wait for DISCUSSION — use polling instead of strict waitForFunction
+  // Game now goes directly from CLUE_GIVING to VOTING (no DISCUSSION)
   const deadline = Date.now() + 20000;
   while (Date.now() < deadline) {
     const phase = await getPhase(page);
-    if (phase === 'DISCUSSION') break;
-    // If bots already advanced past discussion, that's fine too
-    if (phase === 'VOTING' || phase === 'SCORING') return;
+    if (phase === 'VOTING' || phase === 'SCORING' || phase === 'CHAMELEON GUESS') return;
     await page.waitForTimeout(400);
-  }
-
-  const startVotingBtn = page.locator('#btn-start-voting');
-  if (await startVotingBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-    await startVotingBtn.click();
-  }
-
-  // Wait for VOTING
-  const votingDeadline = Date.now() + 10000;
-  while (Date.now() < votingDeadline) {
-    const phase = await getPhase(page);
-    if (phase === 'VOTING') return;
-    await page.waitForTimeout(300);
   }
 }
 

@@ -90,9 +90,8 @@ async function submitClueWhenMyTurn(player: PlayerSession): Promise<void> {
       }
     }
     // Check if we've ACTUALLY moved past clue phase (not stale scoring text)
-    const isDiscussion = await player.page.locator('#btn-start-voting').isVisible({ timeout: 200 }).catch(() => false);
     const isVoting = await player.page.locator('.player-item.votable').first().isVisible({ timeout: 200 }).catch(() => false);
-    if (isDiscussion || isVoting) return;
+    if (isVoting) return;
     await player.page.waitForTimeout(400);
   }
 }
@@ -236,14 +235,8 @@ test.describe('Full 10-Player 5-Round Game', () => {
         await Promise.all(players.map(p => submitClueWhenMyTurn(p)));
         console.log(`  📝 All clues submitted`);
 
-        // 2. DISCUSSION → VOTING
-        const foundDiscussion = await waitForText(players[0].page, 'Start Voting', 20000);
-        if (foundDiscussion) {
-          const btn = players[0].page.locator('#btn-start-voting');
-          if (await btn.isVisible({ timeout: 3000 }).catch(() => false)) {
-            await btn.click();
-          }
-        }
+        // 2. Wait for VOTING phase (game now skips discussion)
+        await waitForText(players[0].page, 'Cast Your Vote', 20000);
         console.log(`  🗳️ Voting started`);
 
         // 3. ALL PLAYERS VOTE
