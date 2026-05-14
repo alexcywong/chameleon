@@ -26,14 +26,7 @@ const WAITING_CLUE_QUIPS = [
   '🕵️ Every clue is a potential tell',
   '😏 Acting natural? Suspicious.',
 ];
-const DISCUSSION_QUIPS = [
-  '🔥 Time to throw some shade!',
-  '🎪 Who\'s been bluffing this whole time?',
-  '🦎 The chameleon could be anyone...',
-  '💬 Trust no one. Question everything.',
-  '🤫 Someone knows less than they\'re letting on',
-  '🎯 Look at those clues. Something doesn\'t add up...',
-];
+
 const VOTE_CAST_QUIPS = [
   '✓ Vote locked in — no take-backs! 🔒',
   '✓ The die is cast... figuratively 🎲',
@@ -85,7 +78,7 @@ export default function Play() {
     }
     return roasts;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [game?.currentRound, game?.phase === 'DISCUSSION' || game?.phase === 'VOTING' || game?.phase === 'SCORING' ? 'show' : 'hide']);
+  }, [game?.currentRound, game?.phase === 'VOTING' || game?.phase === 'SCORING' ? 'show' : 'hide']);
 
   useGameSync();
 
@@ -171,7 +164,7 @@ export default function Play() {
           await updatePlayer(gId, currentTurnId, { clue, hasSubmitted: true });
           const nextTurn = g.currentTurnIndex + 1;
           if (nextTurn >= g.turnOrder.length) {
-            await updateGame(gId, { phase: 'DISCUSSION', currentTurnIndex: nextTurn });
+            await updateGame(gId, { phase: 'VOTING', currentTurnIndex: nextTurn });
           } else {
             await updateGame(gId, { currentTurnIndex: nextTurn });
           }
@@ -283,9 +276,9 @@ export default function Play() {
     // Advance turn
     const nextTurn = game.currentTurnIndex + 1;
     if (nextTurn >= game.turnOrder.length) {
-      // All clues submitted — move to discussion
+      // All clues submitted — skip discussion, go straight to voting
       await updateGame(gameId, {
-        phase: 'DISCUSSION',
+        phase: 'VOTING',
         currentTurnIndex: nextTurn,
       });
     } else {
@@ -293,10 +286,7 @@ export default function Play() {
     }
   }
 
-  async function handleStartVoting() {
-    if (!gameId) return;
-    await updateGame(gameId, { phase: 'VOTING' });
-  }
+
 
   async function handleSubmitVote() {
     if (!votedPlayer || !gameId || !playerId || !game) return;
@@ -448,7 +438,7 @@ export default function Play() {
             )}
 
             {/* Code Card */}
-            {(game.phase === 'CLUE_GIVING' || game.phase === 'DISCUSSION') && (
+            {(game.phase === 'CLUE_GIVING' || game.phase === 'VOTING') && (
               <div className="mb-lg">
                 <CodeCard
                   isChameleon={isChameleon}
@@ -465,7 +455,7 @@ export default function Play() {
                   topic={topicCard.topic}
                   words={topicCard.words}
                   secretWordIndex={isChameleon ? undefined : secretWordIdx}
-                  showSecret={!isChameleon && (game.phase === 'CLUE_GIVING' || game.phase === 'DISCUSSION')}
+                  showSecret={!isChameleon && (game.phase === 'CLUE_GIVING' || game.phase === 'VOTING')}
                   selectable={game.phase === 'CHAMELEON_GUESS' && isChameleon}
                   selectedIndex={selectedGuess}
                   onSelect={setSelectedGuess}
@@ -532,44 +522,7 @@ export default function Play() {
               </div>
             )}
 
-            {/* DISCUSSION phase */}
-            {game.phase === 'DISCUSSION' && (
-              <div className="card mb-lg fade-in">
-                <h3 className="title-md mb-sm">🗣️ Discussion Time</h3>
-                <p className="subtitle mb-sm" style={{ fontSize: '0.85rem' }}>
-                  {pickRandom(DISCUSSION_QUIPS)}
-                </p>
 
-                <div className="clue-list mb-lg">
-                  {game.turnOrder.map((pid) => {
-                    const p = game.players[pid];
-                    if (!p) return null;
-                    return (
-                      <div key={pid} className="clue-bubble">
-                        <span className="clue-author">{p.name}:</span>
-                        <span className="clue-text">{p.clue}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {isHost && (
-                  <button
-                    className="btn btn-primary btn-lg btn-full"
-                    onClick={handleStartVoting}
-                    id="btn-start-voting"
-                  >
-                    🗳️ Start Voting
-                  </button>
-                )}
-                {!isHost && (
-                  <div className="status-bar">
-                    <span className="pulse">●</span>
-                    Waiting for host to start voting...
-                  </div>
-                )}
-              </div>
-            )}
 
             {/* VOTING phase */}
             {game.phase === 'VOTING' && (

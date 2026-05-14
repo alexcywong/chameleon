@@ -326,6 +326,11 @@ function handleMessage(ws: WebSocket, raw: string) {
         // If it's a Play Again reset (phase going to LOBBY), allow score reset to 0
       }
 
+      // Reset lastScoredRound guard when returning to LOBBY (Play Again)
+      if (msg.updates.phase === 'LOBBY') {
+        delete (current as Record<string, unknown>).lastScoredRound;
+      }
+
       // Handle players merge carefully:
       // - During LOBBY: merge players (add new joiners while keeping existing)
       //   BUT if player count decreased, it's a kick — use update as-is

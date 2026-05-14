@@ -2,7 +2,6 @@ export type GamePhase =
   | 'LOBBY'
   | 'DEALING'
   | 'CLUE_GIVING'
-  | 'DISCUSSION'
   | 'VOTING'
   | 'REVEAL'
   | 'CHAMELEON_GUESS'

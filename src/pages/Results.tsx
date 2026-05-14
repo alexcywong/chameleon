@@ -136,9 +136,10 @@ export default function Results() {
         roundHistory: [],
         players: resetPlayers,
       });
-      // The useEffect above will navigate to /lobby/ when phase becomes LOBBY
+      // Navigate immediately — don't wait for state sync round-trip
+      navigate(`/lobby/${gameId}`);
     } else {
-      // Non-host: just go home
+      // Non-host: just go home (host will trigger lobby redirect via state sync)
       reset();
       navigate('/');
     }
