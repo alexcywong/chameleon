@@ -1,16 +1,14 @@
-# 🦎 Chameleon — Online Multiplayer Word Game
+# 🥝 Kiwi in Disguise — Online Multiplayer Word Game
 
-🎮 **[Play Now](https://chameleon.alex-cywong-f37.workers.dev)** · Deployed on Google Cloud Run
-
-A real-time multiplayer party game based on the hit board game by Big Potato Games. One player is secretly the Chameleon — they don't know the secret word and must bluff their way through!
+A real-time multiplayer party word game. One player is secretly the **Kiwi** — they don't know the secret word and must bluff their way through!
 
 ## 🎮 How to Play
 
 1. **Create a game** and share the room code with friends (3–10 players)
-2. Everyone sees a topic card with 16 words — except the **Chameleon** who doesn't know the secret word
+2. Everyone sees a topic card with 16 words — except the **Kiwi** who doesn't know the secret word
 3. Players take turns giving **one-word clues** related to the secret word
-4. **Discuss** who you think the Chameleon is
-5. **Vote** to accuse someone — if caught, the Chameleon gets one chance to guess the word!
+4. **Discuss** who you think the Kiwi is
+5. **Vote** to accuse someone — if caught, the Kiwi gets one chance to guess the word!
 
 ## 🚀 Quick Start
 
@@ -44,12 +42,14 @@ VITE_USE_LOCAL=true npm run build
 ```
 > Single-device mode with bot players. No server required.
 
-### Full multiplayer (Railway, Render, Fly.io)
+### Full multiplayer (Railway, Render, Fly.io, Google Cloud Run)
 ```bash
 npm run build
 # Deploy server/ alongside dist/
 # Server serves both API and static files
 ```
+
+Cloud Run service name: `kiwi` (see `cloudbuild.yaml`).
 
 ## 🧪 Testing
 
@@ -60,4 +60,4 @@ npm run test:ui       # Interactive test UI
 
 ---
 
-*3–10 players · Based on the board game by Big Potato Games*
+*3–10 players · Inspired by social deduction word games*

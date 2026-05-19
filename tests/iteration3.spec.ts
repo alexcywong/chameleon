@@ -321,7 +321,7 @@ test.describe('Voting Phase (Skip Discussion)', () => {
 // ──────────────────────────────────────────────────────────
 test.describe('Lobby — Advanced', () => {
   test('share link contains room code', async ({ page }) => {
-    const code = await createGame(page);
+    await createGame(page);
     // Copy Code or Copy Link button should exist
     const copyBtn = page.locator('text=Copy Code');
     await expect(copyBtn).toBeVisible();

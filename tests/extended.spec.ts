@@ -364,9 +364,8 @@ test.describe('Visual & Layout', () => {
     await startGameWithBots(page);
     // Dice should be visible briefly at start of round
     const dice = page.locator('.dice-roll-container');
-    // May or may not still be visible depending on timing
-    const wasVisible = await dice.isVisible({ timeout: 1000 }).catch(() => false);
-    // We just verify it doesn't crash
+    // May or may not still be visible depending on timing — just verify no crash
+    await dice.isVisible({ timeout: 1000 }).catch(() => false);
     expect(true).toBe(true);
   });
 });

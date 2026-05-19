@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import './Confetti.css';
 
 interface ConfettiPiece {
@@ -20,24 +20,24 @@ const CONFETTI_COLORS = [
   '#ef4444', '#f87171',            // reds
 ];
 
-export default function Confetti() {
-  const [pieces, setPieces] = useState<ConfettiPiece[]>([]);
+function createConfettiPieces(): ConfettiPiece[] {
+  const pieces: ConfettiPiece[] = [];
+  for (let i = 0; i < 80; i++) {
+    pieces.push({
+      id: i,
+      x: Math.random() * 100,
+      color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+      delay: Math.random() * 0.8,
+      size: Math.random() * 8 + 4,
+      rotation: Math.random() * 360,
+      drift: (Math.random() - 0.5) * 60,
+    });
+  }
+  return pieces;
+}
 
-  useEffect(() => {
-    const newPieces: ConfettiPiece[] = [];
-    for (let i = 0; i < 80; i++) {
-      newPieces.push({
-        id: i,
-        x: Math.random() * 100,
-        color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
-        delay: Math.random() * 0.8,
-        size: Math.random() * 8 + 4,
-        rotation: Math.random() * 360,
-        drift: (Math.random() - 0.5) * 60,
-      });
-    }
-    setPieces(newPieces);
-  }, []);
+export default function Confetti() {
+  const [pieces] = useState(createConfettiPieces);
 
   return (
     <div className="confetti-container" aria-hidden="true">

@@ -60,6 +60,24 @@ export default function Results() {
   const displayPlayers = game ? playerList : fallbackData ? Object.values(fallbackData.players) : [];
   const displayRoundHistory = game?.roundHistory || fallbackData?.roundHistory || [];
   const hasData = displayPlayers.length > 0 && displayRoundHistory.length > 0;
+  const winnerName = hasData
+    ? [...displayPlayers].sort((a, b) => b.score - a.score)[0]?.name ?? ''
+    : '';
+
+  const winMessage = useMemo(() => {
+    if (!winnerName) return '';
+    const wittyMessages = [
+      `${winnerName} absolutely crushed it! 🎉`,
+      `All hail ${winnerName}, the Kiwi hunter! 👑`,
+      `${winnerName} saw through every disguise! 🔍`,
+      `${winnerName} blended in AND stood out! 🥝`,
+    ];
+    let hash = 0;
+    for (let i = 0; i < winnerName.length; i++) {
+      hash = ((hash << 5) - hash + winnerName.charCodeAt(i)) | 0;
+    }
+    return wittyMessages[Math.abs(hash) % wittyMessages.length];
+  }, [winnerName]);
 
   if (!hasData) {
     if (loadError) {
@@ -93,16 +111,6 @@ export default function Results() {
       </div>
     );
   }
-
-  const sorted = [...displayPlayers].sort((a, b) => b.score - a.score);
-  const winner = sorted[0];
-  const wittyMessages = [
-    `${winner?.name} absolutely crushed it! 🎉`,
-    `All hail ${winner?.name}, the Kiwi hunter! 👑`,
-    `${winner?.name} saw through every disguise! 🔍`,
-    `${winner?.name} blended in AND stood out! 🥝`,
-  ];
-  const winMessage = useMemo(() => wittyMessages[Math.floor(Math.random() * wittyMessages.length)], [winner?.name]);
 
   async function handlePlayAgain() {
     if (!gameId || !game) return;

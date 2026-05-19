@@ -1,6 +1,6 @@
-# 🦎 Chameleon — Gameplay Workflow Rules
+# 🥝 Kiwi in Disguise — Gameplay Workflow Rules
 
-> Official gameplay state machine and edge case reference for the Chameleon multiplayer word game.
+> Official gameplay state machine and edge case reference for the Kiwi in Disguise multiplayer word game.
 
 ---
 
@@ -8,7 +8,7 @@
 
 ```
 LOBBY → DEALING → CLUE_GIVING → DISCUSSION → VOTING → REVEAL → SCORING → [GAME_OVER | next round]
-                                                   ↘ CHAMELEON_GUESS → SCORING
+                                                   ↘ KIWI_GUESS → SCORING
 ```
 
 ### Phase Transitions
@@ -18,9 +18,9 @@ LOBBY → DEALING → CLUE_GIVING → DISCUSSION → VOTING → REVEAL → SCORI
 | `LOBBY` | `CLUE_GIVING` | Host clicks "Start Game" (≥3 players) | Host |
 | `CLUE_GIVING` | `DISCUSSION` | All players submit clues (sequential turn order) | Automatic |
 | `DISCUSSION` | `VOTING` | Host clicks "Start Voting" | Host |
-| `VOTING` | `CHAMELEON_GUESS` | All votes cast AND majority vote = chameleon | Automatic |
-| `VOTING` | `SCORING` | All votes cast AND majority vote ≠ chameleon (escape) | Automatic |
-| `CHAMELEON_GUESS` | `SCORING` | Chameleon selects a word from the topic grid | Chameleon player |
+| `VOTING` | `KIWI_GUESS` | All votes cast AND majority vote = kiwi | Automatic |
+| `VOTING` | `SCORING` | All votes cast AND majority vote ≠ kiwi (escape) | Automatic |
+| `KIWI_GUESS` | `SCORING` | Kiwi selects a word from the topic grid | Kiwi player |
 | `SCORING` | `CLUE_GIVING` | Host clicks "Next Round" (if rounds remaining) | Host |
 | `SCORING` | `GAME_OVER` | Host clicks "See Final Results" (last round) | Host |
 | `GAME_OVER` | `LOBBY` | Host clicks "Play Again with Everyone" | Host |
@@ -45,7 +45,7 @@ LOBBY → DEALING → CLUE_GIVING → DISCUSSION → VOTING → REVEAL → SCORI
 
 ### 2. CLUE_GIVING (a.k.a. "DEALING + CLUE")
 - **Setup (automatic)**:
-  - Random chameleon assigned (1 of N players)
+  - Random kiwi assigned (1 of N players)
   - Random topic card selected (from 20+ topics, each with 16 words)
   - Dice rolled (yellow: 1-6, blue: 1-6)
   - Random code card selected (from 8 code cards)
@@ -53,7 +53,7 @@ LOBBY → DEALING → CLUE_GIVING → DISCUSSION → VOTING → REVEAL → SCORI
   - Turn order shuffled randomly
 - **What players see**:
   - **Regular players**: Topic card with secret word highlighted, code card showing coordinate
-  - **Chameleon**: Topic card (no highlight), code card showing "YOU ARE THE CHAMELEON 🦎"
+  - **Kiwi**: Topic card (no highlight), code card showing "YOU ARE THE KIWI 🥝"
 - **Turn-based clue submission**:
   - Each player gives a one-word clue when it's their turn
   - Clue input appears only when it's your turn
@@ -70,7 +70,7 @@ LOBBY → DEALING → CLUE_GIVING → DISCUSSION → VOTING → REVEAL → SCORI
 - **No time limit** — host decides when discussion is sufficient
 
 ### 4. VOTING
-- **All players vote** — vote for who they think is the chameleon
+- **All players vote** — vote for who they think is the kiwi
 - **Cannot vote for yourself**
 - **Clue review**: Expandable section to review clues with roasts
 - **Vote display**: Selected player highlighted, "Accuse [name]!" button appears
@@ -81,15 +81,15 @@ LOBBY → DEALING → CLUE_GIVING → DISCUSSION → VOTING → REVEAL → SCORI
   - **Local mode**: Client-side tally after all votes
   - **WS mode**: Server tallies after each vote update, advances when all voted
 - **Outcomes**:
-  - **Accused = Chameleon** → `CHAMELEON_GUESS` phase
-  - **Accused ≠ Chameleon** → `SCORING` phase (chameleon escapes)
+  - **Accused = Kiwi** → `KIWI_GUESS` phase
+  - **Accused ≠ Kiwi** → `SCORING` phase (kiwi escapes)
 
-### 5. CHAMELEON_GUESS
-- **Only chameleon interacts**: Word grid becomes selectable
-- **Other players see**: "The Chameleon is sweating... picking a word..."
-- **Chameleon picks a word** from the topic grid and clicks "Guess: [word]"
+### 5. KIWI_GUESS
+- **Only kiwi interacts**: Word grid becomes selectable
+- **Other players see**: "The Kiwi is sweating... picking a word..."
+- **Kiwi picks a word** from the topic grid and clicks "Guess: [word]"
 - **Outcomes**:
-  - **Correct guess**: Chameleon scores partial escape points
+  - **Correct guess**: Kiwi scores partial escape points
   - **Wrong guess**: Team scores full catch points
 - **Phase advancement**: After guess submitted → `SCORING`
 
@@ -97,12 +97,12 @@ LOBBY → DEALING → CLUE_GIVING → DISCUSSION → VOTING → REVEAL → SCORI
 - **Round results displayed**:
   - Topic name
   - Secret word (revealed)
-  - Chameleon identity (revealed)
-  - Outcome badge: "Caught! 🎯", "Escaped! 💨", or "Guessed correctly! 🦎"
+  - Kiwi identity (revealed)
+  - Outcome badge: "Caught! 🎯", "Escaped! 💨", or "Guessed correctly! 🥝"
 - **Animations**:
-  - Confetti: When chameleon caught and failed to guess
-  - Chameleon Escape animation: When chameleon escapes
-- **Clue roasts revealed** for all players (chameleon's clue highlighted)
+  - Confetti: When kiwi caught and failed to guess
+  - Kiwi Escape animation: When kiwi escapes
+- **Clue roasts revealed** for all players (kiwi's clue highlighted)
 - **Scoreboard**: Shows cumulative scores for all players
 - **Host controls**:
   - "Next Round (X/Y)" if rounds remaining
@@ -122,11 +122,11 @@ LOBBY → DEALING → CLUE_GIVING → DISCUSSION → VOTING → REVEAL → SCORI
 
 ## 📊 Scoring Rules
 
-| Scenario | Chameleon Score | Other Players Score |
+| Scenario | Kiwi Score | Other Players Score |
 |----------|----------------|-------------------|
-| Chameleon **escapes** (voted for wrong person) | **+2** | +0 |
-| Chameleon **caught**, guesses word **incorrectly** | +0 | **+2** |
-| Chameleon **caught**, guesses word **correctly** | **+1** | +0 |
+| Kiwi **escapes** (voted for wrong person) | **+2** | +0 |
+| Kiwi **caught**, guesses word **incorrectly** | +0 | **+2** |
+| Kiwi **caught**, guesses word **correctly** | **+1** | +0 |
 
 ---
 
@@ -136,7 +136,7 @@ LOBBY → DEALING → CLUE_GIVING → DISCUSSION → VOTING → REVEAL → SCORI
 |-------|-----------|--------|
 | `CLUE_GIVING` | Auto-submit random clue word | When it's the bot's turn (800ms interval) |
 | `VOTING` | Auto-vote for random non-self player | After human votes (800ms interval) |
-| `CHAMELEON_GUESS` | Auto-pick random word from topic | If chameleon is a bot (800ms interval) |
+| `KIWI_GUESS` | Auto-pick random word from topic | If kiwi is a bot (800ms interval) |
 
 ---
 
@@ -192,7 +192,7 @@ LOBBY → DEALING → CLUE_GIVING → DISCUSSION → VOTING → REVEAL → SCORI
 │  Server (server/index.ts)                   │
 │  ├── WebSocket message handler              │
 │  ├── Server-side vote tally + advancement   │
-│  ├── Server-side chameleon guess scoring    │
+│  ├── Server-side kiwi guess scoring         │
 │  └── 2hr stale game cleanup                 │
 └─────────────────────────────────────────────┘
 ```
@@ -207,7 +207,7 @@ LOBBY → DEALING → CLUE_GIVING → DISCUSSION → VOTING → REVEAL → SCORI
 | Lobby | 10 | 1-10 |
 | Gameplay basics | 8 | 3, 5, 8, 10 |
 | Voting workflow | 5 | 3 |
-| Chameleon escape/catch | 2 | 10 |
+| Kiwi escape/catch | 2 | 10 |
 | Full game (5 rounds) | 1 | 10 |
 | Play again flow | 1 | 4 |
 | Stress tests (local) | 5 | 10 |

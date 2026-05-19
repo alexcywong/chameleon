@@ -66,7 +66,7 @@ async function submitClueIfMyTurn(player: PlayerSession): Promise<void> {
     }
     // Check if we've moved past clue phase
     const voting = await player.page.locator('text=Cast Your Vote').isVisible({ timeout: 200 }).catch(() => false);
-    const scoring = await player.page.locator('text=Round Result').isVisible({ timeout: 200 }).catch(() => false);
+    const scoring = await player.page.locator('text=/Round \\d+ Results/').isVisible({ timeout: 200 }).catch(() => false);
     if (voting || scoring) return;
     await player.page.waitForTimeout(500);
   }

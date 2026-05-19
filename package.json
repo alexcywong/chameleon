@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "server": "cd server && npx tsx index.ts",
     "test": "npx playwright test",
+    "test:ws": "PLAYWRIGHT_WS=1 npx playwright test",
     "test:ui": "npx playwright test --ui",
     "lint": "eslint ."
   },

@@ -296,7 +296,7 @@ test.describe('Full 10-Player 5-Round Game', () => {
 
         // Calculate expected score deltas based on rules
         const kiwiName = kiwiNames[0];
-        let expectedDelta: Record<string, number> = {};
+        const expectedDelta: Record<string, number> = {};
         if (!caught) {
           // Kiwi escaped: kiwi +2, others +0
           for (const name of playerNames) {
