@@ -1,6 +1,6 @@
 import type { GameState, Player, RoundResult } from '../types/game';
 import topicCards from '../data/words.json';
-import { getCodeCardCount } from './codeCards';
+import { getCodeCardCount, getSecretWordIndex } from './codeCards';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -222,6 +222,50 @@ export function buildRoundResult(
     guessedWord,
     scores,
   };
+}
+
+/**
+ * Build the SCORING update that ends a round: applies round scores to all
+ * players and appends the round result to history. Shared by every
+ * local-mode resolution path (human vote, bot vote, human/bot kiwi guess).
+ */
+export function buildScoringUpdate(
+  state: GameState,
+  accusedId: string,
+  kiwiGuessedCorrectly: boolean,
+  guessedWord?: string
+): Partial<GameState> {
+  const { scores, kiwiCaught } = calculateRoundScores(state, accusedId, kiwiGuessedCorrectly);
+  const topicCard = getTopicCard(state.topicIndex);
+  const secretIdx = getSecretWordIndex(state.codeCardSetIndex, state.diceYellow, state.diceBlue);
+  const result = buildRoundResult(
+    state, topicCard.words[secretIdx], kiwiCaught, kiwiGuessedCorrectly, scores, guessedWord
+  );
+
+  const players: Record<string, Player> = {};
+  for (const [id, player] of Object.entries(state.players)) {
+    players[id] = { ...player, score: (player.score || 0) + (scores[id] || 0) };
+  }
+
+  return {
+    phase: 'SCORING',
+    players,
+    roundHistory: [...(state.roundHistory || []), result],
+    ...(guessedWord !== undefined && { kiwiGuess: guessedWord }),
+  };
+}
+
+/**
+ * Resolve voting once every player has voted: advance to KIWI_GUESS if the
+ * kiwi was accused, otherwise score the round (kiwi escapes).
+ * Returns null while votes are still outstanding.
+ */
+export function resolveVotes(state: GameState): Partial<GameState> | null {
+  if (!allVotesSubmitted(state)) return null;
+  const { winnerId } = tallyVotes(state);
+  const accusedId = winnerId || state.hostId; // tie → host breaks it
+  if (accusedId === state.kiwiId) return { phase: 'KIWI_GUESS' };
+  return buildScoringUpdate(state, accusedId, false);
 }
 
 /**

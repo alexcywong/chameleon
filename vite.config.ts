@@ -9,7 +9,8 @@ export default defineConfig({
     strictPort: true,
     proxy: {
       '/ws': {
-        target: 'ws://localhost:3000',
+        // WS_PORT lets dev/tests avoid collisions with other apps on 3000
+        target: `ws://localhost:${process.env.WS_PORT || 3000}`,
         ws: true,
       },
     },

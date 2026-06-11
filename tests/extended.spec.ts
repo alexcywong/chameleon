@@ -225,17 +225,17 @@ test.describe('Gameplay — UI Details', () => {
     await submitClueWhenReady(page, 'test');
     // Wait for bots + phase transition
     await page.waitForTimeout(5000);
-    // Clue bubbles are either visible directly (during CLUE GIVING)
-    // or behind the recap toggle (during VOTING)
-    const bubbles = page.locator('.clue-bubble');
-    let count = await bubbles.count();
+    // Clues show as .clue-bubble during CLUE GIVING, or as .clue-roast-item
+    // behind the recap toggle during VOTING
+    const clueEntries = page.locator('.clue-bubble, .clue-roast-item');
+    let count = await clueEntries.count();
     if (count === 0) {
       // Try opening the recap toggle
       const recapToggle = page.locator('#btn-toggle-clues');
       if (await recapToggle.isVisible({ timeout: 1000 }).catch(() => false)) {
         await recapToggle.click();
         await page.waitForTimeout(500);
-        count = await bubbles.count();
+        count = await clueEntries.count();
       }
     }
     // Either way, at least 1 clue should exist (ours)
@@ -255,14 +255,14 @@ test.describe('Gameplay — Phase Transitions', () => {
     await page.waitForTimeout(5000);
     const votingHeading = page.locator('text=Cast Your Vote');
     if (await votingHeading.isVisible({ timeout: 3000 }).catch(() => false)) {
-      // Open recap toggle to see clue bubbles
+      // Open recap toggle to see the clue list (rendered as roast items in voting)
       const recapToggle = page.locator('#btn-toggle-clues');
       if (await recapToggle.isVisible({ timeout: 1000 }).catch(() => false)) {
         await recapToggle.click();
         await page.waitForTimeout(500);
       }
-      const bubbles = page.locator('.clue-bubble');
-      const count = await bubbles.count();
+      const clueEntries = page.locator('.clue-bubble, .clue-roast-item');
+      const count = await clueEntries.count();
       expect(count).toBeGreaterThanOrEqual(1);
     }
   });

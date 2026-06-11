@@ -7,8 +7,8 @@
 ## 📋 Game Phases (State Machine)
 
 ```
-LOBBY → DEALING → CLUE_GIVING → DISCUSSION → VOTING → REVEAL → SCORING → [GAME_OVER | next round]
-                                                   ↘ KIWI_GUESS → SCORING
+LOBBY → CLUE_GIVING → VOTING → SCORING → [GAME_OVER | next round]
+                            ↘ KIWI_GUESS → SCORING
 ```
 
 ### Phase Transitions
@@ -16,8 +16,7 @@ LOBBY → DEALING → CLUE_GIVING → DISCUSSION → VOTING → REVEAL → SCORI
 | From | To | Trigger | Who Triggers |
 |------|----|---------|-------------|
 | `LOBBY` | `CLUE_GIVING` | Host clicks "Start Game" (≥3 players) | Host |
-| `CLUE_GIVING` | `DISCUSSION` | All players submit clues (sequential turn order) | Automatic |
-| `DISCUSSION` | `VOTING` | Host clicks "Start Voting" | Host |
+| `CLUE_GIVING` | `VOTING` | All players submit clues (sequential turn order) | Automatic |
 | `VOTING` | `KIWI_GUESS` | All votes cast AND majority vote = kiwi | Automatic |
 | `VOTING` | `SCORING` | All votes cast AND majority vote ≠ kiwi (escape) | Automatic |
 | `KIWI_GUESS` | `SCORING` | Kiwi selects a word from the topic grid | Kiwi player |
@@ -60,19 +59,12 @@ LOBBY → DEALING → CLUE_GIVING → DISCUSSION → VOTING → REVEAL → SCORI
   - Max clue length: 30 characters
   - Submitted clues appear as bubbles for all players
   - Bots auto-submit random clues (local mode only)
-- **Phase advances when**: All players have submitted (currentTurnIndex ≥ turnOrder.length)
+- **Phase advances when**: All players have submitted (currentTurnIndex ≥ turnOrder.length) — goes directly to VOTING (no separate discussion phase)
 
-### 3. DISCUSSION
-- **All clues displayed** as bubbles with player names
-- **Host-only control**: "Start Voting" button
-- **Non-host**: See "Waiting for host to start voting..." message
-- **Clue roasts**: Witty commentary on each clue generated via rule-based system
-- **No time limit** — host decides when discussion is sufficient
-
-### 4. VOTING
+### 3. VOTING
 - **All players vote** — vote for who they think is the kiwi
 - **Cannot vote for yourself**
-- **Clue review**: Expandable section to review clues with roasts
+- **Clue review**: Expandable "Review Clues" section shows all clues with witty rule-based roasts (discussion happens here — no time limit)
 - **Vote display**: Selected player highlighted, "Accuse [name]!" button appears
 - **Vote tally**:
   - Majority wins (single highest vote count)
@@ -84,7 +76,7 @@ LOBBY → DEALING → CLUE_GIVING → DISCUSSION → VOTING → REVEAL → SCORI
   - **Accused = Kiwi** → `KIWI_GUESS` phase
   - **Accused ≠ Kiwi** → `SCORING` phase (kiwi escapes)
 
-### 5. KIWI_GUESS
+### 4. KIWI_GUESS
 - **Only kiwi interacts**: Word grid becomes selectable
 - **Other players see**: "The Kiwi is sweating... picking a word..."
 - **Kiwi picks a word** from the topic grid and clicks "Guess: [word]"
@@ -93,7 +85,7 @@ LOBBY → DEALING → CLUE_GIVING → DISCUSSION → VOTING → REVEAL → SCORI
   - **Wrong guess**: Team scores full catch points
 - **Phase advancement**: After guess submitted → `SCORING`
 
-### 6. SCORING
+### 5. SCORING
 - **Round results displayed**:
   - Topic name
   - Secret word (revealed)
@@ -108,7 +100,7 @@ LOBBY → DEALING → CLUE_GIVING → DISCUSSION → VOTING → REVEAL → SCORI
   - "Next Round (X/Y)" if rounds remaining
   - "🏆 See Final Results" if final round
 
-### 7. GAME_OVER
+### 6. GAME_OVER
 - **Auto-navigates** to `/results/:roomCode`
 - **Shows**:
   - Winner announcement with witty message

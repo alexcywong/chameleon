@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import useGameStore from '../stores/gameStore';
 import { useGameSync } from '../hooks/useGameSync';
 import { updateGame, updatePlayer, deleteGame, isLocalMode } from '../gameApi';
-import { getTopicCard, dealRound, tallyVotes, calculateRoundScores, buildRoundResult } from '../utils/gameLogic';
+import { getTopicCard, dealRound, buildScoringUpdate, resolveVotes } from '../utils/gameLogic';
 import { getSecretWordIndex, getCoordinate } from '../utils/codeCards';
 import TopicCard from '../components/TopicCard';
 import CodeCard from '../components/CodeCard';
@@ -186,31 +186,8 @@ export default function Play() {
         // Always check if all have voted (fixes deadlock when human votes last)
         const latestGame = useGameStore.getState().game;
         if (latestGame && latestGame.phase === 'VOTING') {
-          const allVoted = Object.values(latestGame.players).every(p => p.vote !== '');
-          if (allVoted) {
-            const { winnerId } = tallyVotes(latestGame);
-            const accusedId = winnerId || latestGame.hostId;
-            if (accusedId === latestGame.kiwiId) {
-              await updateGame(gId, { phase: 'KIWI_GUESS' });
-            } else {
-              const { scores, kiwiCaught } = calculateRoundScores(latestGame, accusedId, false);
-              const topicCard = getTopicCard(latestGame.topicIndex);
-              const secretIdx = getSecretWordIndex(latestGame.codeCardSetIndex, latestGame.diceYellow, latestGame.diceBlue);
-              const word = topicCard.words[secretIdx];
-              const result = buildRoundResult(latestGame, word, kiwiCaught, false, scores);
-              const updatedPlayers = { ...latestGame.players };
-              for (const [id, pts] of Object.entries(scores)) {
-                if (updatedPlayers[id]) {
-                  updatedPlayers[id] = { ...updatedPlayers[id], score: (updatedPlayers[id].score || 0) + pts };
-                }
-              }
-              await updateGame(gId, {
-                phase: 'SCORING',
-                players: updatedPlayers,
-                roundHistory: [...(latestGame.roundHistory || []), result],
-              });
-            }
-          }
+          const updates = resolveVotes(latestGame);
+          if (updates) await updateGame(gId, updates);
         }
       }
 
@@ -218,23 +195,8 @@ export default function Play() {
       if (g.phase === 'KIWI_GUESS' && g.kiwiId !== pId) {
         const topicCard = getTopicCard(g.topicIndex);
         const guessIdx = Math.floor(Math.random() * topicCard.words.length);
-        const guessedWord = topicCard.words[guessIdx];
         const secretIdx = getSecretWordIndex(g.codeCardSetIndex, g.diceYellow, g.diceBlue);
-        const correct = guessIdx === secretIdx;
-        const { scores, kiwiCaught } = calculateRoundScores(g, g.kiwiId, correct);
-        const result = buildRoundResult(g, topicCard.words[secretIdx], kiwiCaught, correct, scores, guessedWord);
-        const updatedPlayers = { ...g.players };
-        for (const [id, pts] of Object.entries(scores)) {
-          if (updatedPlayers[id]) {
-            updatedPlayers[id] = { ...updatedPlayers[id], score: (updatedPlayers[id].score || 0) + pts };
-          }
-        }
-        await updateGame(gId, {
-          phase: 'SCORING',
-          kiwiGuess: guessedWord,
-          players: updatedPlayers,
-          roundHistory: [...(g.roundHistory || []), result],
-        });
+        await updateGame(gId, buildScoringUpdate(g, g.kiwiId, guessIdx === secretIdx, topicCard.words[guessIdx]));
       }
     }, 800);
 
@@ -301,37 +263,8 @@ export default function Play() {
     const latestGame = useGameStore.getState().game;
     if (!latestGame || latestGame.phase !== 'VOTING') return;
 
-    const allVoted = Object.values(latestGame.players).every((p) => p.vote !== '');
-
-    if (allVoted) {
-      const { winnerId } = tallyVotes(latestGame);
-      const accusedId = winnerId || latestGame.hostId;
-
-      if (accusedId === latestGame.kiwiId) {
-        await updateGame(gameId, { phase: 'KIWI_GUESS' });
-      } else {
-        const { scores, kiwiCaught } = calculateRoundScores(
-          latestGame, accusedId, false
-        );
-        const result = buildRoundResult(latestGame, secretWord, kiwiCaught, false, scores);
-
-        const updatedPlayers = { ...latestGame.players };
-        for (const [id, pts] of Object.entries(scores)) {
-          if (updatedPlayers[id]) {
-            updatedPlayers[id] = {
-              ...updatedPlayers[id],
-              score: (updatedPlayers[id].score || 0) + pts,
-            };
-          }
-        }
-
-        await updateGame(gameId, {
-          phase: 'SCORING',
-          players: updatedPlayers,
-          roundHistory: [...(latestGame.roundHistory || []), result],
-        });
-      }
-    }
+    const updates = resolveVotes(latestGame);
+    if (updates) await updateGame(gameId, updates);
   }
 
   async function handleKiwiGuess() {
@@ -346,25 +279,7 @@ export default function Play() {
 
     // Local mode: calculate scores on the client
     const correct = selectedGuess === secretWordIdx;
-    const { scores, kiwiCaught } = calculateRoundScores(game, game.kiwiId, correct);
-    const result = buildRoundResult(game, secretWord, kiwiCaught, correct, scores, guessedWord);
-
-    const updatedPlayers = { ...game.players };
-    for (const [id, pts] of Object.entries(scores)) {
-      if (updatedPlayers[id]) {
-        updatedPlayers[id] = {
-          ...updatedPlayers[id],
-          score: (updatedPlayers[id].score || 0) + pts,
-        };
-      }
-    }
-
-    await updateGame(gameId, {
-      phase: 'SCORING',
-      kiwiGuess: guessedWord,
-      players: updatedPlayers,
-      roundHistory: [...(game.roundHistory || []), result],
-    });
+    await updateGame(gameId, buildScoringUpdate(game, game.kiwiId, correct, guessedWord));
   }
 
   async function handleNextRound() {
@@ -534,6 +449,7 @@ export default function Play() {
                 <div className="clue-recap mb-lg">
                   <button
                     className="btn btn-ghost btn-sm clue-recap-toggle"
+                    id="btn-toggle-clues"
                     onClick={() => setShowRoasts(!showRoasts)}
                   >
                     {showRoasts ? '🔽 Hide Clues' : '🔎 Review Clues'}
@@ -697,7 +613,7 @@ export default function Play() {
           <div className="play-sidebar">
             <div className="card">
               <span className="label mb-sm" style={{ display: 'block' }}>Players</span>
-              {(game.phase === 'VOTING' || game.phase === 'REVEAL') && (
+              {game.phase === 'VOTING' && (
                 <div className="sidebar-col-headers">
                   <span className="sidebar-col-header-score">PTS</span>
                   <span className="sidebar-col-header-votes">VOTES</span>
@@ -708,8 +624,8 @@ export default function Play() {
                 currentPlayerId={playerId}
                 currentTurnId={game.phase === 'CLUE_GIVING' ? currentTurnPlayerId : undefined}
                 showScores={true}
-                showVoteCounts={game.phase === 'VOTING' || game.phase === 'REVEAL'}
-                showVoteCheck={game.phase === 'VOTING' || game.phase === 'REVEAL'}
+                showVoteCounts={game.phase === 'VOTING'}
+                showVoteCheck={game.phase === 'VOTING'}
                 voteCounts={voteCounts}
               />
             </div>

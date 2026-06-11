@@ -123,15 +123,15 @@ test.describe('Voting — Details', () => {
 // 2. KIWI CARD STATES
 // ──────────────────────────────────────────────────────────
 test.describe('Kiwi Card States', () => {
-  test('code card shows either kiwi or coordinate', async ({ page }) => {
+  test('code card shows either kiwi or the secret word', async ({ page }) => {
     await startGameWithBots(page);
     const codeCard = page.locator('.code-card');
     await expect(codeCard).toBeVisible();
     const text = await codeCard.textContent();
-    // Should have either "KIWI" or a coordinate like "A1", "B3"
+    // Should show either "KIWI" (kiwi player) or the secret word panel (everyone else)
     const isKiwi = text!.includes('KIWI');
-    const hasCoordinate = /[A-D][1-4]/.test(text!);
-    expect(isKiwi || hasCoordinate).toBe(true);
+    const hasSecretWord = text!.includes('Secret Word');
+    expect(isKiwi || hasSecretWord).toBe(true);
   });
 
   test('kiwi card has red styling', async ({ page }) => {
@@ -277,14 +277,14 @@ test.describe('Voting Phase (Skip Discussion)', () => {
 
     const heading = page.locator('text=Cast Your Vote');
     if (await heading.isVisible({ timeout: 3000 }).catch(() => false)) {
-      // Open recap toggle to see clue bubbles
+      // Open recap toggle to see the clue list (rendered as roast items in voting)
       const recapToggle = page.locator('#btn-toggle-clues');
       if (await recapToggle.isVisible({ timeout: 1000 }).catch(() => false)) {
         await recapToggle.click();
         await page.waitForTimeout(500);
       }
-      const bubbles = page.locator('.clue-bubble');
-      const count = await bubbles.count();
+      const clueEntries = page.locator('.clue-bubble, .clue-roast-item');
+      const count = await clueEntries.count();
       expect(count).toBeGreaterThanOrEqual(1);
     }
   });

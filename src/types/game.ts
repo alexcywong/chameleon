@@ -1,9 +1,7 @@
 export type GamePhase =
   | 'LOBBY'
-  | 'DEALING'
   | 'CLUE_GIVING'
   | 'VOTING'
-  | 'REVEAL'
   | 'KIWI_GUESS'
   | 'SCORING'
   | 'GAME_OVER'

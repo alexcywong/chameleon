@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -n server,vite -c blue,green \"cd server && npx tsx watch index.ts\" \"vite\"",
+    "dev": "concurrently -n server,vite -c blue,green \"cd server && PORT=${WS_PORT:-3000} npx tsx watch index.ts\" \"vite\"",
     "dev:local": "VITE_USE_LOCAL=true vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
