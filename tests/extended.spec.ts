@@ -115,7 +115,7 @@ test.describe('Home Page — Extended', () => {
 
   test('footer shows player count info', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('text=3–10 players')).toBeVisible();
+    await expect(page.locator('text=3–15 players')).toBeVisible();
   });
 });
 
@@ -150,11 +150,11 @@ test.describe('Lobby — Extended', () => {
 
   test('player count updates correctly as bots are added', async ({ page }) => {
     await createGame(page);
-    await expect(page.locator('text=Players (1/10)')).toBeVisible();
+    await expect(page.locator('text=Players (1/15)')).toBeVisible();
     await addBots(page, 1);
-    await expect(page.locator('text=Players (2/10)')).toBeVisible();
+    await expect(page.locator('text=Players (2/15)')).toBeVisible();
     await addBots(page, 1);
-    await expect(page.locator('text=Players (3/10)')).toBeVisible();
+    await expect(page.locator('text=Players (3/15)')).toBeVisible();
   });
 
   test('local demo mode notice is shown', async ({ page }) => {

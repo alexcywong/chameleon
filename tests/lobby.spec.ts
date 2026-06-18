@@ -67,10 +67,10 @@ test.describe('Lobby Page', () => {
     await expect(page.locator('.badge-green')).toContainText('Ready!');
   });
 
-  test('can add up to 9 bots (10 players total)', async ({ page }) => {
+  test('can add up to 14 bots (15 players total)', async ({ page }) => {
     await createGame(page);
-    await addBots(page, 9);
-    // Should have 10 players (host + 9 bots), bot button should be gone
+    await addBots(page, 14);
+    // Should have 15 players (host + 14 bots), bot button should be gone
     await expect(page.locator('#btn-add-bot')).toBeHidden();
   });
 

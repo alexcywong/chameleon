@@ -341,10 +341,10 @@ test.describe('Lobby — Advanced', () => {
     expect(nameSet.size).toBe(count);
   });
 
-  test('max 10 players enforced (add bot hidden at 10)', async ({ page }) => {
+  test('max 15 players enforced (add bot hidden at 15)', async ({ page }) => {
     await createGame(page);
-    await addBots(page, 9);
-    // Bot button should be hidden or disabled at 10 players
+    await addBots(page, 14);
+    // Bot button should be hidden or disabled at 15 players
     const addBtn = page.locator('#btn-add-bot');
     const visible = await addBtn.isVisible({ timeout: 500 }).catch(() => false);
     if (visible) {

@@ -4,7 +4,7 @@ A real-time multiplayer party word game. One player is secretly the **Kiwi** —
 
 ## 🎮 How to Play
 
-1. **Create a game** and share the room code with friends (3–10 players)
+1. **Create a game** and share the room code with friends (3–15 players)
 2. Everyone sees a topic card with 16 words — except the **Kiwi** who doesn't know the secret word
 3. Players take turns giving **one-word clues** related to the secret word
 4. **Discuss** who you think the Kiwi is
@@ -60,4 +60,4 @@ npm run test:ui       # Interactive test UI
 
 ---
 
-*3–10 players · Inspired by social deduction word games*
+*3–15 players · Inspired by social deduction word games*

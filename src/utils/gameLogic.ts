@@ -3,6 +3,9 @@ import topicCards from '../data/words.json';
 import { getCodeCardCount, getSecretWordIndex } from './codeCards';
 import { v4 as uuidv4 } from 'uuid';
 
+/** Maximum players per game — shared by lobby/join validation and UI. */
+export const MAX_PLAYERS = 15;
+
 /**
  * Generate a 6-character uppercase room code.
  */

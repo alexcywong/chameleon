@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useGameStore from '../stores/gameStore';
-import { createPlayer, createGameState, generateRoomCode } from '../utils/gameLogic';
+import { createPlayer, createGameState, generateRoomCode, MAX_PLAYERS } from '../utils/gameLogic';
 import { createGame, getGame, updateGame } from '../gameApi';
 import './Home.css';
 
@@ -68,8 +68,8 @@ export default function Home() {
         setLoading(false);
         return;
       }
-      if (Object.keys(game.players).length >= 10) {
-        setError('This game is full (10 players max).');
+      if (Object.keys(game.players).length >= MAX_PLAYERS) {
+        setError(`This game is full (${MAX_PLAYERS} players max).`);
         setLoading(false);
         return;
       }
@@ -214,7 +214,7 @@ export default function Home() {
         )}
 
         <p className="home-footer fade-in fade-in-delay-3">
-          3–10 players
+          3–{MAX_PLAYERS} players
         </p>
         <p className="home-build-date fade-in fade-in-delay-4">
           Last updated: {new Date((__BUILD_DATE__ as unknown) as string).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}

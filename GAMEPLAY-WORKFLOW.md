@@ -31,14 +31,14 @@ LOBBY → CLUE_GIVING → VOTING → SCORING → [GAME_OVER | next round]
 
 ### 1. LOBBY
 - **Min players**: 3
-- **Max players**: 10
+- **Max players**: 15
 - **Host controls**: Set number of rounds (3, 5, 7, or 10), add bots (local mode), kick players
 - **Non-host**: See waiting quips, can leave game
 - **Join methods**: Direct URL (`/join/:roomCode`), room code entry from home, or share link
 - **Room code**: 6 uppercase alphanumeric characters (excludes I, O, 0, 1 to avoid confusion)
 - **Validations**:
   - Cannot join a game that's already started (phase ≠ LOBBY)
-  - Cannot join a full game (10 players)
+  - Cannot join a full game (15 players)
   - Player name required (max 20 chars)
   - Duplicate names allowed (different UUIDs)
 

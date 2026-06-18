@@ -3,7 +3,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import useGameStore from '../stores/gameStore';
 import { useGameSync } from '../hooks/useGameSync';
 import { updateGame, deleteGame, getGame as fetchGame, isLocalMode } from '../gameApi';
-import { createPlayer, dealRound } from '../utils/gameLogic';
+import { createPlayer, dealRound, MAX_PLAYERS } from '../utils/gameLogic';
 import PlayerList from '../components/PlayerList';
 import './Lobby.css';
 
@@ -141,8 +141,8 @@ export default function Lobby() {
         setJoinLoading(false);
         return;
       }
-      if (Object.keys(existingGame.players).length >= 10) {
-        setJoinError('This game is full (10 players max).');
+      if (Object.keys(existingGame.players).length >= MAX_PLAYERS) {
+        setJoinError(`This game is full (${MAX_PLAYERS} players max).`);
         setJoinLoading(false);
         return;
       }
@@ -176,7 +176,7 @@ export default function Lobby() {
   }
 
   async function handleAddBot() {
-    if (!game || !gameId || playerList.length >= 10) return;
+    if (!game || !gameId || playerList.length >= MAX_PLAYERS) return;
     const botName = BOT_NAMES[botNameIdx % BOT_NAMES.length] + (botNameIdx >= BOT_NAMES.length ? ` ${Math.floor(botNameIdx / BOT_NAMES.length) + 1}` : '');
     botNameIdx++;
     const bot = createPlayer(botName);
@@ -294,7 +294,7 @@ export default function Lobby() {
         {/* Players */}
         <div className="card mb-lg fade-in fade-in-delay-2">
           <div className="flex justify-between items-center mb-md">
-            <span className="label">Players ({playerList.length}/10)</span>
+            <span className="label">Players ({playerList.length}/{MAX_PLAYERS})</span>
             {playerList.length < 3 && (
               <span className="badge badge-amber">Need {3 - playerList.length} more</span>
             )}
@@ -305,7 +305,7 @@ export default function Lobby() {
           <PlayerList players={playerList} currentPlayerId={playerId || undefined} showScores={false} onKick={isHost ? handleKickPlayer : undefined} />
 
           {/* Add Bot button (local mode only) */}
-          {isHost && isLocalMode && playerList.length < 10 && (
+          {isHost && isLocalMode && playerList.length < MAX_PLAYERS && (
             <button
               className="btn btn-secondary btn-sm btn-full mt-md"
               onClick={handleAddBot}
