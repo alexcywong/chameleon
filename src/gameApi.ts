@@ -62,11 +62,48 @@ if (forceLocal) {
   _isLocalMode = true;
   console.log('💻 Running in LOCAL mode (in-memory state)');
 } else {
-  // We are deployed on Cloud Run, WebSocket server is guaranteed to be there.
-  // The ping test was causing issues on slow networks or cold starts (falling back to local mode).
-  api = await loadWsApi();
-  _isLocalMode = false;
-  console.log('🔌 Connecting to WebSocket server');
+  // Try WebSocket — fall back to local mode if server is unreachable.
+  // Two rapid connection failures means no server (static hosting like Cloudflare Pages).
+  // Cloud Run cold starts keep the socket in CONNECTING state, so they won't trigger this.
+  const wsModule = await import('./wsProvider');
+
+  const connected = await new Promise<boolean>((resolve) => {
+    let resolved = false;
+    let failCount = 0;
+
+    const timeout = setTimeout(() => {
+      if (!resolved) { resolved = true; unsub(); resolve(false); }
+    }, 5000);
+
+    const unsub = wsModule.onConnectionChange((state) => {
+      if (resolved) return;
+      if (state === 'connected') {
+        resolved = true;
+        clearTimeout(timeout);
+        unsub();
+        resolve(true);
+      } else if (state === 'reconnecting') {
+        failCount++;
+        if (failCount >= 2) {
+          resolved = true;
+          clearTimeout(timeout);
+          unsub();
+          resolve(false);
+        }
+      }
+    });
+  });
+
+  if (connected) {
+    api = await loadWsApi();
+    _isLocalMode = false;
+    console.log('🔌 Connected to WebSocket server');
+  } else {
+    wsModule.shutdown();
+    api = await loadLocalApi();
+    _isLocalMode = true;
+    console.log('💻 No server found — running in local mode');
+  }
 }
 
 export const {

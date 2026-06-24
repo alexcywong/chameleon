@@ -7,7 +7,7 @@ import { createPlayer, dealRound, MAX_PLAYERS } from '../utils/gameLogic';
 import PlayerList from '../components/PlayerList';
 import './Lobby.css';
 
-const BOT_NAMES = ['Riley', 'Jordan', 'Morgan', 'Quinn', 'Avery', 'Taylor', 'Casey', 'Sam', 'Drew'];
+const BOT_NAMES = ['Riley', 'Jordan', 'Morgan', 'Quinn', 'Avery', 'Taylor', 'Casey', 'Sam', 'Drew', 'Reese', 'Jamie', 'Robin', 'Sage', 'Harper'];
 let botNameIdx = 0;
 
 const WAITING_QUIPS = [

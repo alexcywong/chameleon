@@ -13,6 +13,7 @@ type ConnectionCallback = (state: 'connected' | 'reconnecting' | 'disconnected')
 let ws: WebSocket | null = null;
 const gameCallbacks = new Map<string, Set<Callback>>();
 const pendingMessages: string[] = [];
+let shuttingDown = false;
 
 // Connection state tracking
 let _connectionState: 'connected' | 'reconnecting' | 'disconnected' = 'disconnected';
@@ -72,7 +73,20 @@ function handlePong() {
   if (pongTimeout) { clearTimeout(pongTimeout); pongTimeout = null; }
 }
 
+/** Stop all reconnection attempts and close the socket. */
+export function shutdown() {
+  shuttingDown = true;
+  stopHeartbeat();
+  if (ws) {
+    ws.onclose = null;
+    ws.onerror = null;
+    ws.close();
+    ws = null;
+  }
+}
+
 function connect() {
+  if (shuttingDown) return;
   if (ws?.readyState === WebSocket.OPEN || ws?.readyState === WebSocket.CONNECTING) return;
 
   // If we previously had a connection, mark as reconnecting

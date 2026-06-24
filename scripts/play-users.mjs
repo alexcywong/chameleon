@@ -7,7 +7,7 @@ import { chromium } from '@playwright/test';
 
 const BASE = process.env.PLAY_URL || 'http://localhost:5173';
 const ROUNDS = Number(process.env.ROUNDS || 3);
-const PLAYERS = Math.min(10, Math.max(3, Number(process.env.PLAYERS || 3)));
+const PLAYERS = Math.min(15, Math.max(3, Number(process.env.PLAYERS || 3)));
 const SHOT_DIR = process.env.SHOT_DIR || ''; // when set, save stage screenshots here
 const PLAY_AGAIN = process.env.PLAY_AGAIN === '1'; // also exercise the Play Again flow
 const LINGER_MS = Number(process.env.LINGER_MS || 0); // 0 = keep windows open until Ctrl+C
@@ -118,7 +118,7 @@ async function hostAdvanceRound(hostPage, isLastRound) {
 }
 
 const browser = await chromium.launch({ headless: false, slowMo: 80 });
-const allNames = ['Alex (Host)', 'Sam', 'Jordan', 'Riley', 'Morgan', 'Quinn', 'Avery', 'Taylor', 'Casey', 'Drew'];
+const allNames = ['Alex (Host)', 'Sam', 'Jordan', 'Riley', 'Morgan', 'Quinn', 'Avery', 'Taylor', 'Casey', 'Drew', 'Reese', 'Jamie', 'Robin', 'Sage', 'Harper'];
 const names = allNames.slice(0, PLAYERS);
 const contexts = await Promise.all(names.map(() => browser.newContext()));
 const pages = await Promise.all(contexts.map((ctx) => ctx.newPage()));
