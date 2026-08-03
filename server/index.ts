@@ -3,7 +3,7 @@ import { createServer } from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import topicCardsData from './words.json';
+import wordTablesData from './words.json';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -81,16 +81,21 @@ function checkAllVotesAndAdvance(gameId: string) {
     if (count > maxVotes) { maxVotes = count; winners = [id]; }
     else if (count === maxVotes) { winners.push(id); }
   }
-  const accusedId = winners.length === 1 ? winners[0] : game.hostId;
+  const accusedId = winners[Math.floor(Math.random() * winners.length)];
 
   if (accusedId === game.kiwiId) {
     // Kiwi was caught — let them guess
     game.phase = 'KIWI_GUESS';
   } else {
-    // Wrong person accused — kiwi escapes, score immediately
+    // Wrong person accused — kiwi escapes
+    const votedCorrectly = new Set(
+      Object.values(game.players).filter(p => p.vote === game.kiwiId).map(p => p.id)
+    );
     const scores: Record<string, number> = {};
     for (const id of Object.keys(game.players)) {
-      scores[id] = id === game.kiwiId ? 2 : 0;
+      if (id === game.kiwiId) scores[id] = 3;
+      else if (votedCorrectly.has(id)) scores[id] = 1;
+      else scores[id] = 0;
     }
     // Update scores
     for (const [id, pts] of Object.entries(scores)) {
@@ -99,16 +104,13 @@ function checkAllVotesAndAdvance(gameId: string) {
       }
     }
     // Build round result
-    // We need topic/secret word data — import the word list
-    const topicCards = getTopicCards();
-    const topicCard = topicCards[game.topicIndex % topicCards.length];
+    const wordTable = wordTablesData[game.topicIndex % wordTablesData.length];
     const secretIdx = getSecretWordIndex(game.codeCardSetIndex, game.diceYellow, game.diceBlue);
-    const secretWord = topicCard?.words?.[secretIdx] || 'Unknown';
+    const secretWord = wordTable?.words?.[secretIdx] || 'Unknown';
     const kiwiName = game.players[game.kiwiId]?.name || 'Unknown';
 
     const result = {
       round: game.currentRound,
-      topic: topicCard?.topic || 'Unknown',
       secretWord,
       kiwiId: game.kiwiId,
       kiwiName,
@@ -138,21 +140,27 @@ function handleKiwiGuessOnServer(gameId: string) {
     return;
   }
 
-  const topicCards = getTopicCards();
-  const topicCard = topicCards[game.topicIndex % topicCards.length];
+  const wordTable = wordTablesData[game.topicIndex % wordTablesData.length];
   const secretIdx = getSecretWordIndex(game.codeCardSetIndex, game.diceYellow, game.diceBlue);
-  const secretWord = topicCard?.words?.[secretIdx] || 'Unknown';
+  const secretWord = wordTable?.words?.[secretIdx] || 'Unknown';
   const guessedWord = game.kiwiGuess;
   const correct = guessedWord === secretWord;
 
+  const votedCorrectly = new Set(
+    Object.values(game.players).filter(p => p.vote === game.kiwiId).map(p => p.id)
+  );
   const scores: Record<string, number> = {};
   for (const id of Object.keys(game.players)) {
     if (!correct) {
-      // Kiwi caught and failed
-      scores[id] = id === game.kiwiId ? 0 : 2;
+      // Kiwi caught and failed: correct voters get 2, kiwi 0
+      if (id === game.kiwiId) scores[id] = 0;
+      else if (votedCorrectly.has(id)) scores[id] = 2;
+      else scores[id] = 0;
     } else {
-      // Kiwi caught but guessed correctly
-      scores[id] = id === game.kiwiId ? 1 : 0;
+      // Kiwi caught but guessed correctly: kiwi 1, correct voters 1
+      if (id === game.kiwiId) scores[id] = 1;
+      else if (votedCorrectly.has(id)) scores[id] = 1;
+      else scores[id] = 0;
     }
   }
 
@@ -162,7 +170,6 @@ function handleKiwiGuessOnServer(gameId: string) {
 
   const result = {
     round: game.currentRound,
-    topic: topicCard?.topic || 'Unknown',
     secretWord,
     kiwiId: game.kiwiId,
     kiwiName: game.players[game.kiwiId]?.name || 'Unknown',
@@ -176,11 +183,6 @@ function handleKiwiGuessOnServer(gameId: string) {
   game.lastScoredRound = game.currentRound; // Mark as scored
   games.set(gameId, { ...game });
   broadcast(gameId);
-}
-
-// ── Code card / topic helpers (server side) ─────────────
-function getTopicCards() {
-  return topicCardsData;
 }
 
 const codeCards = [

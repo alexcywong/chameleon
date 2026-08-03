@@ -48,7 +48,6 @@ export default function ScoreBoard({ players, roundHistory, showFinal = false }:
           {roundHistory.map((round) => (
             <div key={round.round} className="round-history-item">
               <span className="round-number">R{round.round}</span>
-              <span className="round-topic">{round.topic}</span>
               <span className="round-word">"{round.secretWord}"</span>
               <span className={`round-result ${round.kiwiCaught ? 'caught' : 'escaped'}`}>
                 {round.kiwiCaught

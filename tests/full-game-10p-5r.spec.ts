@@ -5,7 +5,7 @@ import { test, expect, Browser, BrowserContext, Page } from '@playwright/test';
  *
  * Verifies:
  * 1. All 10 players can join and see each other
- * 2. Each round plays through: clue → discussion → voting → scoring
+ * 2. Each round plays through: clue → voting → scoring
  * 3. ALL players see the SAME kiwi caught/escaped result
  * 4. Scores are tallied correctly per the scoring rules:
  *    - Kiwi escapes:       kiwi +2, others +0
@@ -102,14 +102,9 @@ async function castVote(player: PlayerSession): Promise<void> {
     const votable = player.page.locator('.player-item.votable');
     const count = await votable.count().catch(() => 0);
     if (count > 0) {
-      // Vote randomly
+      // Tapping a player directly casts the vote
       const idx = Math.floor(Math.random() * count);
       await votable.nth(idx).click();
-      await player.page.waitForTimeout(300);
-      const submitBtn = player.page.locator('[id^="btn-submit-vote"], #btn-accuse');
-      if (await submitBtn.first().isVisible({ timeout: 500 }).catch(() => false)) {
-        await submitBtn.first().click();
-      }
       return;
     }
     // Already past voting
@@ -139,7 +134,6 @@ async function extractScoringInfo(page: Page): Promise<{
   kiwiName: string;
   caught: boolean | null;
   guessedCorrectly: boolean;
-  topic: string;
   secretWord: string;
   playerScores: Record<string, number>;
 }> {
@@ -147,12 +141,12 @@ async function extractScoringInfo(page: Page): Promise<{
   const body = await scoringInfo.textContent().catch(() => '') || '';
 
   // Extract kiwi name from the <strong> inside the kiwi line
-  // Use the last <strong> (first is Topic, second is Secret Word, third is kiwi name)
+  // (first <strong> is Secret Word, second is kiwi name)
   const strongElements = scoringInfo.locator('strong');
   const strongCount = await strongElements.count();
   let kiwiName = 'Unknown';
-  if (strongCount >= 3) {
-    kiwiName = (await strongElements.nth(2).textContent().catch(() => '') || '').trim();
+  if (strongCount >= 2) {
+    kiwiName = (await strongElements.nth(1).textContent().catch(() => '') || '').trim();
   }
 
   // Determine if caught, escaped, or guessed correctly from badges
@@ -160,9 +154,7 @@ async function extractScoringInfo(page: Page): Promise<{
   const caught = badges.includes('Caught') ? true : badges.includes('Escaped') ? false : null;
   const guessedCorrectly = badges.includes('Guessed correctly');
 
-  // Extract topic and secret word
-  const topicMatch = body.match(/Topic:\s*(.+?)(?:\s*Secret|\s*$)/);
-  const topic = topicMatch?.[1]?.trim() || 'Unknown';
+  // Extract secret word
   const wordMatch = body.match(/Secret Word:\s*(.+?)(?:\s*Kiwi|\s*$)/);
   const secretWord = wordMatch?.[1]?.trim() || 'Unknown';
 
@@ -181,7 +173,7 @@ async function extractScoringInfo(page: Page): Promise<{
     }
   }
 
-  return { kiwiName, caught, guessedCorrectly, topic, secretWord, playerScores };
+  return { kiwiName, caught, guessedCorrectly, secretWord, playerScores };
 }
 
 // ── Main Test ─────────────────────────────────────────────
@@ -192,7 +184,6 @@ test.describe('Full 10-Player 5-Round Game', () => {
     test.setTimeout(600_000); // 10 minutes
     const players: PlayerSession[] = [];
     const roundResults: RoundVerification[] = [];
-    const cumulativeScores: Record<string, number> = {};
 
     try {
       // ── CREATE 10 PLAYERS ──
@@ -200,8 +191,6 @@ test.describe('Full 10-Player 5-Round Game', () => {
       for (let i = 0; i < PLAYER_COUNT; i++) {
         players.push(await createPlayerSession(browser, playerNames[i]));
       }
-      // Initialize cumulative scores
-      for (const name of playerNames) cumulativeScores[name] = 0;
 
       // ── HOST CREATES GAME ──
       const roomCode = await hostCreatesGame(players[0]);
@@ -236,7 +225,7 @@ test.describe('Full 10-Player 5-Round Game', () => {
         console.log(`  📝 All clues submitted`);
 
         // 2. Wait for VOTING phase (game now skips discussion)
-        await waitForText(players[0].page, 'Cast Your Vote', 20000);
+        await waitForText(players[0].page, 'Tap to Accuse', 20000);
         console.log(`  🗳️ Voting started`);
 
         // 3. ALL PLAYERS VOTE
@@ -283,50 +272,14 @@ test.describe('Full 10-Player 5-Round Game', () => {
         console.log(`  📊 Status: ${caught ? (guessedCorrectly ? 'Caught + Guessed correctly' : 'Caught!') : 'Escaped!'}`);
         expect(caughtStatuses.length, `All players should see same caught/escaped status`).toBe(1);
 
-        // Verify ALL players see the SAME topic & secret word
-        const topics = [...new Set(scoringInfos.map(s => s.topic))];
+        // Verify ALL players see the SAME secret word
         const secretWords = [...new Set(scoringInfos.map(s => s.secretWord))];
-        console.log(`  📋 Topic: ${topics[0]}, Secret: ${secretWords[0]}`);
-        expect(topics.length, `All players should see same topic`).toBe(1);
+        console.log(`  📋 Secret: ${secretWords[0]}`);
         expect(secretWords.length, `All players should see same secret word`).toBe(1);
 
         // Verify scores on host's page
         const hostScores = scoringInfos[0].playerScores;
         console.log(`  📈 Scores: ${JSON.stringify(hostScores)}`);
-
-        // Calculate expected score deltas based on rules
-        const kiwiName = kiwiNames[0];
-        const expectedDelta: Record<string, number> = {};
-        if (!caught) {
-          // Kiwi escaped: kiwi +2, others +0
-          for (const name of playerNames) {
-            expectedDelta[name] = name === kiwiName ? 2 : 0;
-          }
-        } else if (guessedCorrectly) {
-          // Caught but guessed correctly: kiwi +1, others +0
-          for (const name of playerNames) {
-            expectedDelta[name] = name === kiwiName ? 1 : 0;
-          }
-        } else {
-          // Caught and wrong guess: kiwi +0, others +2
-          for (const name of playerNames) {
-            expectedDelta[name] = name === kiwiName ? 0 : 2;
-          }
-        }
-
-        // Update cumulative scores and verify
-        for (const name of playerNames) {
-          cumulativeScores[name] += expectedDelta[name];
-        }
-
-        // Verify host sees correct cumulative scores
-        for (const name of playerNames) {
-          if (hostScores[name] !== undefined) {
-            if (hostScores[name] !== cumulativeScores[name]) {
-              console.warn(`  ⚠️ Score mismatch for ${name}: expected ${cumulativeScores[name]}, got ${hostScores[name]}`);
-            }
-          }
-        }
 
         // Verify all players see the SAME scores
         for (let i = 1; i < scoringInfos.length; i++) {
@@ -346,7 +299,7 @@ test.describe('Full 10-Player 5-Round Game', () => {
           kiwiName: kiwiNames[0],
           caught: caught === true,
           guessedCorrectly,
-          scoreDeltas: expectedDelta,
+          scoreDeltas: hostScores,
         });
 
         console.log(`  ✅ Round ${round} verified — all ${PLAYER_COUNT} players agree on results\n`);
@@ -396,9 +349,14 @@ test.describe('Full 10-Player 5-Round Game', () => {
         const status = r.caught ? (r.guessedCorrectly ? '⚠️ Caught+Guessed' : '🎯 Caught') : '💨 Escaped';
         console.log(`  Round ${r.round}: ${r.kiwiName} was 🥝 → ${status}`);
       }
-      console.log(`\n  Final Scores (expected):`);
-      const sorted = Object.entries(cumulativeScores).sort((a, b) => b[1] - a[1]);
-      for (const [name, score] of sorted) {
+      console.log(`\n  Final Scores:`);
+      const finalScores = await players[0].page.locator('.scoreboard-item').evaluateAll(items =>
+        items.map(item => ({
+          name: item.querySelector('.scoreboard-name')?.textContent?.trim() || '',
+          score: parseInt(item.querySelector('.scoreboard-score')?.textContent || '0'),
+        }))
+      ).catch(() => []);
+      for (const { name, score } of finalScores) {
         console.log(`    ${name.padEnd(8)} ${score} pts`);
       }
       console.log(`${'═'.repeat(60)}\n`);

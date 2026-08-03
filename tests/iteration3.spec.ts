@@ -35,7 +35,7 @@ async function submitClueWhenReady(page: Page, clue = 'testing') {
       await page.click('#btn-submit-clue');
       return;
     }
-    if (await page.locator('text=Cast Your Vote').isVisible({ timeout: 200 }).catch(() => false)) return;
+    if (await page.locator('text=Tap to Accuse').isVisible({ timeout: 200 }).catch(() => false)) return;
     if (await page.locator('.word-cell.is-guess-option').isVisible({ timeout: 200 }).catch(() => false)) return;
   }
 }
@@ -47,22 +47,20 @@ async function playThroughVoting(page: Page) {
   // Game now goes directly from clue giving to voting
   await page.waitForTimeout(2000);
 
+  // Tapping a player directly casts the vote
   const votable = page.locator('.player-item.votable');
   if (await votable.count() > 0) {
     await votable.first().click();
-    await page.waitForTimeout(400);
-    const accuseBtn = page.locator('#btn-submit-vote');
-    if (await accuseBtn.isVisible({ timeout: 500 }).catch(() => false)) {
-      await accuseBtn.click();
-    }
   }
+  // Wait for timer to auto-resolve after all votes are in (~2-3s)
+  await page.waitForTimeout(5000);
 }
 
 // ──────────────────────────────────────────────────────────
 // 1. VOTING PHASE — DETAILED TESTS
 // ──────────────────────────────────────────────────────────
 test.describe('Voting — Details', () => {
-  test('accuse button shows voted player name', async ({ page }) => {
+  test('tapping a player casts vote and highlights them', async ({ page }) => {
     test.setTimeout(60_000);
     await startGameWithBots(page);
     await submitClueWhenReady(page);
@@ -72,15 +70,11 @@ test.describe('Voting — Details', () => {
 
     const votable = page.locator('.player-item.votable');
     if (await votable.count() > 0) {
-      const playerName = await votable.first().locator('.player-name').textContent();
       await votable.first().click();
-      await page.waitForTimeout(400);
-      const accuseBtn = page.locator('#btn-submit-vote');
-      if (await accuseBtn.isVisible({ timeout: 500 }).catch(() => false)) {
-        const btnText = await accuseBtn.textContent();
-        // Button should mention the player name
-        expect(btnText).toContain(playerName?.trim().split(' ')[0] || '');
-      }
+      await page.waitForTimeout(500);
+      // Tapping directly casts the vote — player should be highlighted
+      const voted = page.locator('.player-item.is-voted-player');
+      expect(await voted.count()).toBeGreaterThanOrEqual(1);
     }
   });
 
@@ -275,7 +269,7 @@ test.describe('Voting Phase (Skip Discussion)', () => {
     await submitClueWhenReady(page, 'animals');
     await page.waitForTimeout(5000);
 
-    const heading = page.locator('text=Cast Your Vote');
+    const heading = page.locator('text=Tap to Accuse');
     if (await heading.isVisible({ timeout: 3000 }).catch(() => false)) {
       // Open recap toggle to see the clue list (rendered as roast items in voting)
       const recapToggle = page.locator('#btn-toggle-clues');
@@ -307,7 +301,7 @@ test.describe('Voting Phase (Skip Discussion)', () => {
     await submitClueWhenReady(page);
     await page.waitForTimeout(5000);
 
-    const heading = page.locator('text=Cast Your Vote');
+    const heading = page.locator('text=Tap to Accuse');
     if (await heading.isVisible({ timeout: 3000 }).catch(() => false)) {
       const body = await page.textContent('body');
       // Should have some vote-related content
@@ -401,12 +395,12 @@ test.describe('Game State', () => {
     await expect(players).toHaveCount(3);
   });
 
-  test('topic card header shows topic name', async ({ page }) => {
+  test('word grid header shows label', async ({ page }) => {
     await startGameWithBots(page);
-    const topicCard = page.locator('.topic-card-header');
-    if (await topicCard.isVisible({ timeout: 1000 }).catch(() => false)) {
-      const text = await topicCard.textContent();
-      expect(text!.length).toBeGreaterThan(0);
+    const header = page.locator('.topic-card-header .label');
+    if (await header.isVisible({ timeout: 1000 }).catch(() => false)) {
+      const text = await header.textContent();
+      expect(text).toBe('Word Grid');
     }
   });
 });

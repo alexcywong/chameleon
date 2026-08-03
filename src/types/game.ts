@@ -20,7 +20,6 @@ export interface Player {
 
 export interface RoundResult {
   round: number;
-  topic: string;
   secretWord: string;
   kiwiId: string;
   kiwiName: string;
@@ -48,10 +47,11 @@ export interface GameState {
   kiwiGuess: string;
   roundHistory: RoundResult[];
   createdAt: number;
+  usedTableIndices?: number[];
 }
 
-export interface TopicCard {
-  topic: string;
+export interface WordTable {
+  topic?: string;
   words: string[];
 }
 

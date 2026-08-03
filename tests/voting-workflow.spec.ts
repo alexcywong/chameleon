@@ -94,12 +94,8 @@ async function castVote(page: Page): Promise<void> {
     const votable = page.locator('.player-item.votable');
     const count = await votable.count().catch(() => 0);
     if (count > 0) {
+      // Tapping a player directly casts the vote
       await votable.first().click();
-      await page.waitForTimeout(300);
-      const submitBtn = page.locator('[id^="btn-submit-vote"], #btn-accuse');
-      if (await submitBtn.first().isVisible({ timeout: 500 }).catch(() => false)) {
-        await submitBtn.first().click();
-      }
       return;
     }
     const phase = await getPhase(page);

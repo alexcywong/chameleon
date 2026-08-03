@@ -16,11 +16,11 @@ async function startGameWithBots(page: Page, botCount = 2, playerName = 'Alex'):
 }
 
 test.describe('Gameplay — 3 Players', () => {
-  test('play page shows round info and topic card', async ({ page }) => {
+  test('play page shows round info and word grid', async ({ page }) => {
     await startGameWithBots(page);
     await expect(page.locator('text=Round 1')).toBeVisible();
     await expect(page.locator('.topic-card')).toBeVisible();
-    await expect(page.locator('text=TOPIC CARD')).toBeVisible();
+    await expect(page.locator('text=Word Grid')).toBeVisible();
   });
 
   test('shows code card (kiwi or coordinate)', async ({ page }) => {
@@ -60,7 +60,7 @@ test.describe('Gameplay — 3 Players', () => {
     const pageText = await page.textContent('body');
     const advanced = pageText!.includes('Vote') ||
       pageText!.includes('Clue submitted') ||
-      pageText!.includes('Cast Your Vote');
+      pageText!.includes('Tap to Accuse');
     expect(advanced).toBe(true);
   });
 
@@ -82,20 +82,16 @@ test.describe('Gameplay — 3 Players', () => {
     await page.waitForTimeout(3000);
 
     // Phase 3: VOTING — bots auto-vote, we need to vote too
-    const voteSection = page.locator('text=Cast Your Vote');
+    const voteSection = page.locator('text=Tap to Accuse');
     if (await voteSection.isVisible()) {
-      // Vote for the first non-self player
+      // Vote for the first non-self player (tapping directly casts the vote)
       const players = page.locator('.player-item.votable');
       if (await players.count() > 0) {
         await players.first().click();
-        await page.waitForTimeout(500);
-        const accuseBtn = page.locator('[id^="btn-submit-vote"]');
-        if (await accuseBtn.isVisible()) {
-          await accuseBtn.click();
-        }
       }
     }
-    await page.waitForTimeout(3000);
+    // Wait for timer + potential tie-breaker animation to resolve
+    await page.waitForTimeout(8000);
 
     // Should see scoring results or kiwi guess
     const body = await page.textContent('body');

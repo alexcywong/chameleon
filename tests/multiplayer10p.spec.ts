@@ -70,7 +70,7 @@ async function submitClueIfMyTurn(player: PlayerSession): Promise<void> {
       }
     }
     // Check if we've moved past clue phase
-    const voting = await player.page.locator('text=Cast Your Vote').isVisible({ timeout: 200 }).catch(() => false);
+    const voting = await player.page.locator('text=Tap to Accuse').isVisible({ timeout: 200 }).catch(() => false);
     const scoring = await player.page.locator('text=/Round \\d+ Results/').isVisible({ timeout: 200 }).catch(() => false);
     if (voting || scoring) return;
     await player.page.waitForTimeout(500);
@@ -83,15 +83,9 @@ async function voteIfNeeded(player: PlayerSession): Promise<void> {
     const votable = player.page.locator('.player-item.votable');
     const count = await votable.count().catch(() => 0);
     if (count > 0) {
-      // Pick a random votable player
+      // Tapping a player directly casts the vote
       const idx = Math.floor(Math.random() * count);
       await votable.nth(idx).click();
-      await player.page.waitForTimeout(300);
-      // Click submit vote / accuse button
-      const submitBtn = player.page.locator('[id^="btn-submit-vote"], #btn-accuse');
-      if (await submitBtn.first().isVisible({ timeout: 500 }).catch(() => false)) {
-        await submitBtn.first().click();
-      }
       return;
     }
     // Already past voting?
@@ -122,7 +116,7 @@ async function playOneRound(players: PlayerSession[], hostIdx: number): Promise<
   await Promise.all(players.map(p => submitClueIfMyTurn(p)));
 
   // 2. Wait for VOTING phase (game now skips discussion)
-  await waitForPhase(host.page, 'Cast Your Vote', 15000);
+  await waitForPhase(host.page, 'Tap to Accuse', 15000);
 
   // 3. VOTING: All players vote concurrently
   await host.page.waitForTimeout(1000); // Let voting phase propagate

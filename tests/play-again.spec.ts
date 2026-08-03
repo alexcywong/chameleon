@@ -64,14 +64,10 @@ async function submitClueWhenMyTurn(player: PlayerSession): Promise<void> {
 async function castVote(player: PlayerSession): Promise<void> {
   const deadline = Date.now() + 15000;
   while (Date.now() < deadline) {
+    // Tapping a player directly casts the vote
     const votable = player.page.locator('.player-item.votable');
     if (await votable.first().isVisible({ timeout: 300 }).catch(() => false)) {
       await votable.first().click();
-      await player.page.waitForTimeout(300);
-      const btn = player.page.locator('[id^="btn-submit-vote"], #btn-accuse');
-      if (await btn.first().isVisible({ timeout: 500 }).catch(() => false)) {
-        await btn.first().click();
-      }
       return;
     }
     await player.page.waitForTimeout(300);
@@ -134,7 +130,7 @@ test.describe('Play Again Flow', () => {
         console.log(`  Round ${round}: Clues submitted`);
 
         // Wait for voting phase (game skips discussion)
-        await waitForText(players[0].page, 'Cast Your Vote', 15000);
+        await waitForText(players[0].page, 'Tap to Accuse', 15000);
         await players[0].page.waitForTimeout(1000);
 
         // Vote
@@ -213,7 +209,7 @@ test.describe('Play Again Flow', () => {
 
       // Play round 1 of second game
       await Promise.all(players.map(p => submitClueWhenMyTurn(p)));
-      await waitForText(players[0].page, 'Cast Your Vote', 15000);
+      await waitForText(players[0].page, 'Tap to Accuse', 15000);
       await players[0].page.waitForTimeout(1000);
       await Promise.all(players.map(p => castVote(p)));
       await players[0].page.waitForTimeout(2000);

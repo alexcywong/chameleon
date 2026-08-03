@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import useGameStore from '../stores/gameStore';
 import { useGameSync } from '../hooks/useGameSync';
 import { updateGame, updatePlayer, deleteGame, isLocalMode } from '../gameApi';
-import { getTopicCard, dealRound, buildScoringUpdate, resolveVotes } from '../utils/gameLogic';
+import { getWordTable, dealRound, buildScoringUpdate, resolveVotes, tallyVotes, allVotesSubmitted } from '../utils/gameLogic';
 import { getSecretWordIndex, getCoordinate } from '../utils/codeCards';
 import TopicCard from '../components/TopicCard';
 import CodeCard from '../components/CodeCard';
@@ -27,12 +27,6 @@ const WAITING_CLUE_QUIPS = [
   '😏 Acting natural? Suspicious.',
 ];
 
-const VOTE_CAST_QUIPS = [
-  '✓ Vote locked in — no take-backs! 🔒',
-  '✓ The die is cast... figuratively 🎲',
-  '✓ Your suspicion has been noted 📝',
-  '✓ Vote submitted — fingers crossed 🤞',
-];
 const CLUE_SUBMITTED_QUIPS = [
   '✓ Nailed it. Or did you? 🤔',
   '✓ Clue locked — let\'s see who sweats 😅',
@@ -40,6 +34,46 @@ const CLUE_SUBMITTED_QUIPS = [
   '✓ Your clue is in. Act natural. 🥝',
 ];
 function pickRandom(arr: string[]) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function TieBreakerAnimation({ tied, chosen, players }: {
+  tied: string[];
+  chosen: string;
+  players: Record<string, { name: string }>;
+}) {
+  const [highlightIdx, setHighlightIdx] = useState(0);
+  const [settled, setSettled] = useState(false);
+
+  useEffect(() => {
+    let count = 0;
+    const total = 18 + tied.indexOf(chosen);
+    const interval = setInterval(() => {
+      count++;
+      setHighlightIdx(count % tied.length);
+      if (count >= total) {
+        clearInterval(interval);
+        setSettled(true);
+      }
+    }, 140);
+    return () => clearInterval(interval);
+  }, [tied, chosen]);
+
+  return (
+    <div className="tie-breaker-overlay fade-in">
+      <h3 className="title-md mb-sm">🎲 It's a tie!</h3>
+      <p className="subtitle mb-md">Randomly choosing...</p>
+      <div className="tie-breaker-slots">
+        {tied.map((id, i) => (
+          <div
+            key={id}
+            className={`tie-breaker-slot ${highlightIdx === i ? 'tie-slot-active' : ''} ${settled && id === chosen ? 'tie-slot-chosen' : ''}`}
+          >
+            {players[id]?.name ?? '?'}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function Play() {
   const navigate = useNavigate();
@@ -50,6 +84,7 @@ export default function Play() {
   const isMyTurn = game?.phase === 'CLUE_GIVING' && game?.turnOrder?.[game.currentTurnIndex] === playerId;
   const hadGameRef = useRef(false);
   const nullGameTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const voteAutoSubmittedRef = useRef(false);
 
   // Track if we ever had a valid game state
   useEffect(() => {
@@ -61,19 +96,21 @@ export default function Play() {
   const [votedPlayer, setVotedPlayer] = useState('');
   const [showDice, setShowDice] = useState(true);
   const [showRoasts, setShowRoasts] = useState(false);
+  const [voteTimer, setVoteTimer] = useState(30);
+  const [tieBreaker, setTieBreaker] = useState<{ tied: string[]; picking: boolean; chosen: string | null }>({ tied: [], picking: false, chosen: null });
 
   // Generate roasts once per round (memoized so they don't shuffle on re-renders)
   const clueRoasts = useMemo(() => {
     if (!game || !game.turnOrder || game.phase === 'CLUE_GIVING') return {} as Record<string, string>;
-    const topic = getTopicCard(game.topicIndex);
+    const table = getWordTable(game.topicIndex);
     const secretIdx = getSecretWordIndex(game.codeCardSetIndex, game.diceYellow, game.diceBlue);
-    const word = topic.words[secretIdx];
+    const word = table.words[secretIdx];
     const allClues = game.turnOrder.map(pid => game.players[pid]?.clue || '');
     const roasts: Record<string, string> = {};
     for (const pid of game.turnOrder) {
       const p = game.players[pid];
       if (p?.clue) {
-        roasts[pid] = generateClueRoast(p.name, p.clue, topic.topic, word, allClues);
+        roasts[pid] = generateClueRoast(p.name, p.clue, word, allClues);
       }
     }
     return roasts;
@@ -96,7 +133,83 @@ export default function Play() {
     setClueInput('');
     setSelectedGuess(null);
     setVotedPlayer('');
+    setVoteTimer(30);
+    setTieBreaker({ tied: [], picking: false, chosen: null });
+    voteAutoSubmittedRef.current = false;
   }, [game?.phase]);
+
+  // Voting countdown timer (30 seconds)
+  useEffect(() => {
+    if (game?.phase !== 'VOTING') return;
+    const interval = setInterval(() => {
+      setVoteTimer(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [game?.phase, game?.currentRound]);
+
+  // Fast-forward timer when all votes are in
+  useEffect(() => {
+    if (game?.phase !== 'VOTING' || voteTimer <= 1) return;
+    if (allVotesSubmitted(game)) setVoteTimer(1);
+  }, [game, voteTimer]);
+
+  // When timer hits 0: submit vote if needed, then resolve with tie-breaker
+  useEffect(() => {
+    if (voteTimer !== 0 || game?.phase !== 'VOTING' || voteAutoSubmittedRef.current) return;
+    voteAutoSubmittedRef.current = true;
+    if (!gameId || !playerId) return;
+
+    (async () => {
+      const g = useGameStore.getState().game;
+      if (!g || g.phase !== 'VOTING') return;
+
+      // Submit player's vote if they haven't yet
+      if (!g.players[playerId]?.vote) {
+        const voteTarget = votedPlayer || (() => {
+          const others = Object.keys(g.players).filter(id => id !== playerId);
+          return others[Math.floor(Math.random() * others.length)];
+        })();
+        if (voteTarget) {
+          setVotedPlayer(voteTarget);
+          await updatePlayer(gameId, playerId, { vote: voteTarget });
+        }
+      }
+
+      if (!isLocalMode) return;
+
+      // Wait for store to settle
+      await new Promise(r => setTimeout(r, 150));
+      const latest = useGameStore.getState().game;
+      if (!latest || latest.phase !== 'VOTING') return;
+
+      // Check for tie before resolving
+      const { winnerId, counts } = tallyVotes(latest);
+      if (!winnerId) {
+        const maxCount = Math.max(...Object.values(counts));
+        const tied = Object.entries(counts).filter(([, c]) => c === maxCount).map(([id]) => id);
+        if (tied.length > 1) {
+          const chosen = tied[Math.floor(Math.random() * tied.length)];
+          setTieBreaker({ tied, picking: true, chosen });
+          // Animation runs for ~3 seconds, then resolve
+          await new Promise(r => setTimeout(r, 3000));
+          setTieBreaker(prev => ({ ...prev, picking: false }));
+          await new Promise(r => setTimeout(r, 800));
+        }
+      }
+
+      const final = useGameStore.getState().game;
+      if (final && final.phase === 'VOTING') {
+        const updates = resolveVotes(final);
+        if (updates) await updateGame(gameId, updates);
+      }
+    })();
+  }, [voteTimer, game?.phase, gameId, playerId, votedPlayer]);
 
   // Redirect to results on game over
   useEffect(() => {
@@ -171,32 +284,24 @@ export default function Play() {
         }
       }
 
-      // VOTING: auto-submit votes for bots that haven't voted
+      // VOTING: auto-submit votes for bots (resolution deferred to timer)
       if (g.phase === 'VOTING') {
         const unvotedBots = Object.keys(g.players).filter(
           id => id !== pId && !g.players[id].vote
         );
-        if (unvotedBots.length > 0) {
-          for (const botId of unvotedBots) {
-            const targets = Object.keys(g.players).filter(id => id !== botId);
-            const vote = targets[Math.floor(Math.random() * targets.length)];
-            await updatePlayer(gId, botId, { vote });
-          }
-        }
-        // Always check if all have voted (fixes deadlock when human votes last)
-        const latestGame = useGameStore.getState().game;
-        if (latestGame && latestGame.phase === 'VOTING') {
-          const updates = resolveVotes(latestGame);
-          if (updates) await updateGame(gId, updates);
+        for (const botId of unvotedBots) {
+          const targets = Object.keys(g.players).filter(id => id !== botId);
+          const vote = targets[Math.floor(Math.random() * targets.length)];
+          await updatePlayer(gId, botId, { vote });
         }
       }
 
       // KIWI_GUESS: if kiwi is a bot, auto-guess
       if (g.phase === 'KIWI_GUESS' && g.kiwiId !== pId) {
-        const topicCard = getTopicCard(g.topicIndex);
-        const guessIdx = Math.floor(Math.random() * topicCard.words.length);
+        const wordTable = getWordTable(g.topicIndex);
+        const guessIdx = Math.floor(Math.random() * wordTable.words.length);
         const secretIdx = getSecretWordIndex(g.codeCardSetIndex, g.diceYellow, g.diceBlue);
-        await updateGame(gId, buildScoringUpdate(g, g.kiwiId, guessIdx === secretIdx, topicCard.words[guessIdx]));
+        await updateGame(gId, buildScoringUpdate(g, g.kiwiId, guessIdx === secretIdx, wordTable.words[guessIdx]));
       }
     }, 800);
 
@@ -219,10 +324,10 @@ export default function Play() {
     );
   }
 
-  const topicCard = getTopicCard(game.topicIndex);
+  const wordTable = getWordTable(game.topicIndex);
   const secretWordIdx = getSecretWordIndex(game.codeCardSetIndex, game.diceYellow, game.diceBlue);
   const coordinate = getCoordinate(game.codeCardSetIndex, game.diceYellow, game.diceBlue);
-  const secretWord = topicCard.words[secretWordIdx];
+  const secretWord = wordTable.words[secretWordIdx];
   const currentTurnPlayerId = game.turnOrder?.[game.currentTurnIndex] || '';
 
   // --- Handlers ---
@@ -250,26 +355,16 @@ export default function Play() {
 
 
 
-  async function handleSubmitVote() {
-    if (!votedPlayer || !gameId || !playerId || !game) return;
-    await updatePlayer(gameId, playerId, { vote: votedPlayer });
-
-    // In WS mode, the server handles phase advancement after all votes
-    if (!isLocalMode) return;
-
-    // Local mode: advance phase on the client
-    // Small delay to let store update
-    await new Promise(r => setTimeout(r, 100));
-    const latestGame = useGameStore.getState().game;
-    if (!latestGame || latestGame.phase !== 'VOTING') return;
-
-    const updates = resolveVotes(latestGame);
-    if (updates) await updateGame(gameId, updates);
+  async function handleVoteForPlayer(targetId: string) {
+    if (!gameId || !playerId || !game) return;
+    if (targetId === playerId) return;
+    setVotedPlayer(targetId);
+    await updatePlayer(gameId, playerId, { vote: targetId });
   }
 
   async function handleKiwiGuess() {
     if (selectedGuess === null || !gameId || !game) return;
-    const guessedWord = topicCard.words[selectedGuess];
+    const guessedWord = wordTable.words[selectedGuess];
 
     if (!isLocalMode) {
       // WS mode: just set the guess, server handles scoring
@@ -367,8 +462,7 @@ export default function Play() {
             {game.phase !== 'SCORING' && (
               <div className="card mb-lg">
                 <TopicCard
-                  topic={topicCard.topic}
-                  words={topicCard.words}
+                  words={wordTable.words}
                   secretWordIndex={isKiwi ? undefined : secretWordIdx}
                   showSecret={!isKiwi && (game.phase === 'CLUE_GIVING' || game.phase === 'VOTING')}
                   selectable={game.phase === 'KIWI_GUESS' && isKiwi}
@@ -442,8 +536,24 @@ export default function Play() {
             {/* VOTING phase */}
             {game.phase === 'VOTING' && (
               <div className="card mb-lg fade-in">
-                <h3 className="title-md mb-md">🗳️ Cast Your Vote</h3>
-                <p className="subtitle mb-md">Who do you think is the Kiwi?</p>
+                <div className="flex justify-between items-center mb-md">
+                  <h3 className="title-md">🗳️ Tap to Accuse</h3>
+                  <div className={`vote-timer ${voteTimer <= 10 ? 'vote-timer-urgent' : ''}`}>
+                    <svg viewBox="0 0 36 36" className="vote-timer-ring">
+                      <circle cx="18" cy="18" r="16" fill="none" stroke="var(--border-subtle)" strokeWidth="2" />
+                      <circle cx="18" cy="18" r="16" fill="none"
+                        stroke={voteTimer <= 10 ? 'var(--red-400)' : 'var(--emerald-400)'}
+                        strokeWidth="2.5" strokeDasharray={`${(voteTimer / 30) * 100.5} 100.5`}
+                        strokeLinecap="round" transform="rotate(-90 18 18)" />
+                    </svg>
+                    <span className="vote-timer-text">{voteTimer}</span>
+                  </div>
+                </div>
+                <p className="subtitle mb-md">
+                  {game.players[playerId]?.vote
+                    ? `Voted for ${game.players[game.players[playerId].vote]?.name ?? '...'} — tap another to change`
+                    : 'Who do you think is the Kiwi?'}
+                </p>
 
                 {/* Clue recap during voting */}
                 <div className="clue-recap mb-lg">
@@ -478,27 +588,23 @@ export default function Play() {
                 <PlayerList
                   players={playerList}
                   currentPlayerId={playerId}
-                  votable={!game.players[playerId]?.vote}
+                  votable={voteTimer > 0 && !tieBreaker.picking}
                   votedId={votedPlayer || game.players[playerId]?.vote || undefined}
-                  onVote={setVotedPlayer}
+                  onVote={handleVoteForPlayer}
                   hideCheck={true}
                   showClues={true}
                 />
 
-                {votedPlayer && !game.players[playerId]?.vote && (
-                  <button
-                    className="btn btn-danger btn-lg btn-full mt-md"
-                    onClick={handleSubmitVote}
-                    id="btn-submit-vote"
-                  >
-                    🎯 Accuse {game.players[votedPlayer]?.name}!
-                  </button>
+                {voteTimer === 0 && !tieBreaker.picking && !tieBreaker.chosen && (
+                  <div className="status-bar mt-md">⏰ Time's up! Tallying votes...</div>
                 )}
 
-                {game.players[playerId]?.vote && (
-                  <div className="status-bar mt-md">
-                    {pickRandom(VOTE_CAST_QUIPS)}
-                  </div>
+                {tieBreaker.picking && tieBreaker.chosen && (
+                  <TieBreakerAnimation
+                    tied={tieBreaker.tied}
+                    chosen={tieBreaker.chosen}
+                    players={game.players}
+                  />
                 )}
               </div>
             )}
@@ -519,7 +625,7 @@ export default function Play() {
                         onClick={handleKiwiGuess}
                         id="btn-kiwi-guess"
                       >
-                        🎲 Guess: "{topicCard.words[selectedGuess]}"
+                        🎲 Guess: "{wordTable.words[selectedGuess]}"
                       </button>
                     )}
                   </>
@@ -543,7 +649,6 @@ export default function Play() {
                   <h3 className="title-lg mb-sm">Round {lastRound.round} Results</h3>
 
                   <div className="scoring-info mb-md">
-                    <p>Topic: <strong>{lastRound.topic}</strong></p>
                     <p>Secret Word: <strong className="highlight-word">{lastRound.secretWord}</strong></p>
                     <p>
                       Kiwi: <strong>{lastRound.kiwiName}</strong>

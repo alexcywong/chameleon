@@ -137,6 +137,7 @@ export default function Results() {
         diceYellow: 0,
         diceBlue: 0,
         kiwiId: '',
+        usedTableIndices: [],
         codeCardSetIndex: 0,
         turnOrder: [],
         currentTurnIndex: 0,

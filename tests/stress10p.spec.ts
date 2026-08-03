@@ -39,7 +39,7 @@ async function playFullGame(page: Page, gameNum: number): Promise<string> {
         await page.click('#btn-submit-clue');
         break;
       }
-      if (await page.locator('text=Cast Your Vote').isVisible({ timeout: 200 }).catch(() => false)) break;
+      if (await page.locator('text=Tap to Accuse').isVisible({ timeout: 200 }).catch(() => false)) break;
       if (await page.locator('.word-cell.is-guess-option').isVisible({ timeout: 200 }).catch(() => false)) break;
     }
 
@@ -56,21 +56,18 @@ async function playFullGame(page: Page, gameNum: number): Promise<string> {
     // Wait for voting phase (game skips discussion)
     for (let i = 0; i < 15; i++) {
       await page.waitForTimeout(800);
-      if (await page.locator('text=Cast Your Vote').isVisible({ timeout: 200 }).catch(() => false)) break;
+      if (await page.locator('text=Tap to Accuse').isVisible({ timeout: 200 }).catch(() => false)) break;
       if (await page.locator('#btn-next-round').isVisible({ timeout: 200 }).catch(() => false)) break;
     }
 
-    // VOTING: submit vote
+    // VOTING: tapping a player directly casts the vote
     await page.waitForTimeout(1500);
     const votable = page.locator('.player-item.votable');
     if (await votable.count() > 0) {
       await votable.first().click();
-      await page.waitForTimeout(400);
-      const accuseBtn = page.locator('[id^="btn-submit-vote"]');
-      if (await accuseBtn.isVisible({ timeout: 500 }).catch(() => false)) {
-        await accuseBtn.click();
-      }
     }
+    // Wait for timer to auto-resolve after all votes are in (~2-3s)
+    await page.waitForTimeout(5000);
 
     // Wait for post-vote phases
     for (let i = 0; i < 15; i++) {

@@ -1,5 +1,5 @@
 import type { GameState, Player, RoundResult } from '../types/game';
-import topicCards from '../data/words.json';
+import wordTables from '../data/words.json';
 import { getCodeCardCount, getSecretWordIndex } from './codeCards';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -26,10 +26,13 @@ export function rollDie(): number {
 }
 
 /**
- * Pick a random topic index.
+ * Pick a random word table index, avoiding already-used indices.
  */
-export function randomTopicIndex(): number {
-  return Math.floor(Math.random() * topicCards.length);
+export function randomTableIndex(usedIndices: number[] = []): number {
+  const used = new Set(usedIndices);
+  const available = Array.from({ length: wordTables.length }, (_, i) => i).filter(i => !used.has(i));
+  if (available.length === 0) return Math.floor(Math.random() * wordTables.length);
+  return available[Math.floor(Math.random() * available.length)];
 }
 
 /**
@@ -95,7 +98,8 @@ export function shuffle<T>(arr: T[]): T[] {
 export function dealRound(state: GameState): Partial<GameState> {
   const playerIds = Object.keys(state.players);
   const kiwiId = playerIds[Math.floor(Math.random() * playerIds.length)];
-  const topicIndex = randomTopicIndex();
+  const usedIndices = state.usedTableIndices || [];
+  const topicIndex = randomTableIndex(usedIndices);
   const diceYellow = rollDie();
   const diceBlue = rollDie();
   const turnOrder = shuffle(playerIds);
@@ -115,7 +119,7 @@ export function dealRound(state: GameState): Partial<GameState> {
     phase: 'CLUE_GIVING',
     currentRound: state.currentRound + 1,
     topicIndex,
-    secretWordIndex: 0, // Will be computed per-player via code card
+    secretWordIndex: 0,
     diceYellow,
     diceBlue,
     kiwiId,
@@ -124,6 +128,7 @@ export function dealRound(state: GameState): Partial<GameState> {
     currentTurnIndex: 0,
     kiwiGuess: '',
     players,
+    usedTableIndices: [...usedIndices, topicIndex],
   };
 }
 
@@ -182,20 +187,31 @@ export function calculateRoundScores(
   const playerIds = Object.keys(state.players);
   const kiwiCaught = accusedId === state.kiwiId;
 
+  // Who voted for the kiwi?
+  const votedCorrectly = new Set(
+    Object.values(state.players).filter(p => p.vote === state.kiwiId).map(p => p.id)
+  );
+
   if (!kiwiCaught) {
-    // Kiwi escapes
+    // Kiwi escapes: kiwi gets 3, correct voters still get 1 for spotting them
     for (const id of playerIds) {
-      scores[id] = id === state.kiwiId ? 2 : 0;
+      if (id === state.kiwiId) scores[id] = 3;
+      else if (votedCorrectly.has(id)) scores[id] = 1;
+      else scores[id] = 0;
     }
   } else if (kiwiGuessedCorrectly) {
-    // Kiwi caught but guessed the word
+    // Kiwi caught but guessed the word: kiwi gets 1, correct voters get 1
     for (const id of playerIds) {
-      scores[id] = id === state.kiwiId ? 1 : 0;
+      if (id === state.kiwiId) scores[id] = 1;
+      else if (votedCorrectly.has(id)) scores[id] = 1;
+      else scores[id] = 0;
     }
   } else {
-    // Kiwi caught and failed to guess
+    // Kiwi caught and failed to guess: correct voters get 2, kiwi gets 0
     for (const id of playerIds) {
-      scores[id] = id === state.kiwiId ? 0 : 2;
+      if (id === state.kiwiId) scores[id] = 0;
+      else if (votedCorrectly.has(id)) scores[id] = 2;
+      else scores[id] = 0;
     }
   }
 
@@ -216,7 +232,6 @@ export function buildRoundResult(
   const kiwi = state.players[state.kiwiId];
   return {
     round: state.currentRound,
-    topic: topicCards[state.topicIndex]?.topic || 'Unknown',
     secretWord,
     kiwiId: state.kiwiId,
     kiwiName: kiwi?.name || 'Unknown',
@@ -239,10 +254,10 @@ export function buildScoringUpdate(
   guessedWord?: string
 ): Partial<GameState> {
   const { scores, kiwiCaught } = calculateRoundScores(state, accusedId, kiwiGuessedCorrectly);
-  const topicCard = getTopicCard(state.topicIndex);
+  const wordTable = getWordTable(state.topicIndex);
   const secretIdx = getSecretWordIndex(state.codeCardSetIndex, state.diceYellow, state.diceBlue);
   const result = buildRoundResult(
-    state, topicCard.words[secretIdx], kiwiCaught, kiwiGuessedCorrectly, scores, guessedWord
+    state, wordTable.words[secretIdx], kiwiCaught, kiwiGuessedCorrectly, scores, guessedWord
   );
 
   const players: Record<string, Player> = {};
@@ -265,22 +280,30 @@ export function buildScoringUpdate(
  */
 export function resolveVotes(state: GameState): Partial<GameState> | null {
   if (!allVotesSubmitted(state)) return null;
-  const { winnerId } = tallyVotes(state);
-  const accusedId = winnerId || state.hostId; // tie → host breaks it
+  const { winnerId, counts } = tallyVotes(state);
+  let accusedId: string;
+  if (winnerId) {
+    accusedId = winnerId;
+  } else {
+    // Tie: randomly pick one of the tied players
+    const maxCount = Math.max(...Object.values(counts));
+    const tied = Object.entries(counts).filter(([, c]) => c === maxCount).map(([id]) => id);
+    accusedId = tied[Math.floor(Math.random() * tied.length)];
+  }
   if (accusedId === state.kiwiId) return { phase: 'KIWI_GUESS' };
   return buildScoringUpdate(state, accusedId, false);
 }
 
 /**
- * Get topic card data.
+ * Get word table data.
  */
-export function getTopicCard(index: number) {
-  return topicCards[index % topicCards.length];
+export function getWordTable(index: number) {
+  return wordTables[index % wordTables.length];
 }
 
 /**
- * Get all topic cards.
+ * Get all word tables.
  */
-export function getAllTopicCards() {
-  return topicCards;
+export function getAllWordTables() {
+  return wordTables;
 }

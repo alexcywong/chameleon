@@ -21,7 +21,7 @@ const TOO_OBVIOUS_ROASTS = [
 const TOO_VAGUE_ROASTS = [
   "\"{clue}\"? That could mean ANYTHING, {name}. Are you even playing the same game?",
   "{name} said \"{clue}\"… helpful as a chocolate teapot. ☕",
-  "Thanks for nothing, {name}. \"{clue}\" tells us absolutely zilch about {topic}.",
+  "Thanks for nothing, {name}. \"{clue}\" tells us absolutely zilch.",
   "{name} went with \"{clue}\" — either genius-level misdirection or they're lost.",
   "\"{clue}\"… {name}, did you just pick a random word from the dictionary?",
   "{name} out here playing 4D chess with \"{clue}\" while we're playing Kiwi.",
@@ -33,11 +33,11 @@ const KIWI_SUSPICIOUS_ROASTS = [
   "\"{clue}\"? That's EXACTLY what a Kiwi would say, {name}. 🥝",
   "{name} sweated out \"{clue}\" — a clue that works for literally any word on the board.",
   "Hmm, {name}… \"{clue}\" is giving strong Kiwi energy right now.",
-  "{name} said \"{clue}\" like they read the topic card upside down. Sus. 🤔",
+  "{name} said \"{clue}\" like they read the word grid upside down. Sus. 🤔",
   "\"{clue}\"? {name} is either the Kiwi or just terrible at this game.",
   "I've seen better bluffs in kindergarten, {name}. \"{clue}\"? Really?",
   "{name} dropped \"{clue}\" with the confidence of someone who didn't see the word.",
-  "\"{clue}\" — {name} definitely Googled 'generic things about {topic}' real quick.",
+  "\"{clue}\" — {name} definitely picked the first word that popped into their head.",
 ];
 
 const GENERIC_ROASTS = [
@@ -49,7 +49,7 @@ const GENERIC_ROASTS = [
   "Out of ALL the words, {name} went with \"{clue}\". A choice was made.",
   "\"{clue}\" — {name} either knows something we don't, or knows nothing at all.",
   "{name} submitted \"{clue}\" and honestly? The audacity is impressive.",
-  "\"{clue}\", says {name}, as if that explains ANYTHING about {topic}.",
+  "\"{clue}\", says {name}, as if that explains ANYTHING.",
   "{name} hit us with \"{clue}\" — the clue equivalent of a shrug emoji. 🤷",
   "The vibes from {name}'s clue \"{clue}\" are… chaotic. Very chaotic.",
   "{name} really said \"{clue}\" and thought we wouldn't notice the panic.",
@@ -94,7 +94,6 @@ function isDuplicate(clue: string, allClues: string[]): boolean {
 export function generateClueRoast(
   playerName: string,
   clue: string,
-  topic: string,
   secretWord: string,
   allClues: string[]
 ): string {
@@ -116,6 +115,5 @@ export function generateClueRoast(
   return template
     .replace(/\{name\}/g, playerName)
     .replace(/\{clue\}/g, clue)
-    .replace(/\{topic\}/g, topic)
     .replace(/\{word\}/g, secretWord);
 }

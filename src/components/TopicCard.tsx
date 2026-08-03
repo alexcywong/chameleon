@@ -2,7 +2,6 @@ import { useState } from 'react';
 import './TopicCard.css';
 
 interface TopicCardProps {
-  topic: string;
   words: string[];
   secretWordIndex?: number; // -1 or undefined if kiwi
   showSecret?: boolean;
@@ -12,7 +11,6 @@ interface TopicCardProps {
 }
 
 export default function TopicCard({
-  topic,
   words,
   secretWordIndex,
   showSecret = false,
@@ -25,8 +23,7 @@ export default function TopicCard({
   return (
     <div className="topic-card fade-in">
       <div className="topic-card-header">
-        <span className="label">Topic Card</span>
-        <h3 className="title-md">{topic}</h3>
+        <span className="label">Word Grid</span>
       </div>
 
       <div className="topic-grid-wrapper">

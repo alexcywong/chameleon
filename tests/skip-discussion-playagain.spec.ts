@@ -76,12 +76,8 @@ async function playFullRound(page: Page): Promise<void> {
     while (Date.now() < voteDeadline) {
       const count = await votable.count().catch(() => 0);
       if (count > 0) {
+        // Tapping a player directly casts the vote
         await votable.first().click();
-        await page.waitForTimeout(300);
-        const submitBtn = page.locator('[id^="btn-submit-vote"]');
-        if (await submitBtn.first().isVisible({ timeout: 500 }).catch(() => false)) {
-          await submitBtn.first().click();
-        }
         break;
       }
       await page.waitForTimeout(500);
@@ -146,14 +142,14 @@ test.describe('Skip Discussion Tests', () => {
     expect(isVisible).toBe(false);
   });
 
-  // 3. Voting phase shows the "Cast Your Vote" header
-  test('3: voting phase shows cast your vote header', async ({ page }) => {
+  // 3. Voting phase shows the "Tap to Accuse" header
+  test('3: voting phase shows tap to accuse header', async ({ page }) => {
     await createAndStartGame(page);
     await playThroughClueGiving(page);
 
     const phase = await waitForPhase(page, ['VOTING', 'SCORING', 'KIWI GUESS'], 20000);
     if (phase === 'VOTING') {
-      const header = page.locator('h3', { hasText: 'Cast Your Vote' });
+      const header = page.locator('h3', { hasText: 'Tap to Accuse' });
       await expect(header).toBeVisible({ timeout: 5000 });
     }
   });

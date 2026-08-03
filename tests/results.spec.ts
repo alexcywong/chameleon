@@ -29,7 +29,7 @@ async function playToResults(page: Page): Promise<void> {
         await page.click('#btn-submit-clue');
         break;
       }
-      if (await page.locator('text=Cast Your Vote').isVisible({ timeout: 200 }).catch(() => false)) break;
+      if (await page.locator('text=Tap to Accuse').isVisible({ timeout: 200 }).catch(() => false)) break;
       if (await page.locator('.word-cell.is-guess-option').isVisible({ timeout: 200 }).catch(() => false)) break;
     }
 
@@ -47,21 +47,18 @@ async function playToResults(page: Page): Promise<void> {
     // Wait for voting or scoring to appear
     for (let i = 0; i < 10; i++) {
       await page.waitForTimeout(800);
-      if (await page.locator('text=Cast Your Vote').isVisible({ timeout: 200 }).catch(() => false)) break;
+      if (await page.locator('text=Tap to Accuse').isVisible({ timeout: 200 }).catch(() => false)) break;
       if (await page.locator('#btn-next-round').isVisible({ timeout: 200 }).catch(() => false)) break;
     }
 
-    // VOTING: submit vote
+    // VOTING: tapping a player directly casts the vote
     await page.waitForTimeout(1200);
     const votablePlayers = page.locator('.player-item.votable');
     if (await votablePlayers.count() > 0) {
       await votablePlayers.first().click();
-      await page.waitForTimeout(400);
-      const accuseBtn = page.locator('[id^="btn-submit-vote"]');
-      if (await accuseBtn.isVisible({ timeout: 500 }).catch(() => false)) {
-        await accuseBtn.click();
-      }
     }
+    // Wait for timer to auto-resolve after all votes are in (~2-3s)
+    await page.waitForTimeout(5000);
 
     // Wait for post-vote phases (KIWI_GUESS or SCORING)
     for (let i = 0; i < 10; i++) {

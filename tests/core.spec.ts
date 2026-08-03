@@ -84,7 +84,7 @@ async function advanceToVoting(page: Page): Promise<void> {
 async function playRoundToScoring(page: Page): Promise<void> {
   await advanceToVoting(page);
 
-  // Cast our vote if we're in voting phase
+  // Cast our vote if we're in voting phase (tapping a player directly casts the vote)
   const phase = await getPhaseText(page);
   if (phase === 'VOTING') {
     const votable = page.locator('.player-item.votable');
@@ -93,11 +93,6 @@ async function playRoundToScoring(page: Page): Promise<void> {
       const count = await votable.count().catch(() => 0);
       if (count > 0) {
         await votable.first().click();
-        await page.waitForTimeout(300);
-        const submitBtn = page.locator('[id^="btn-submit-vote"]');
-        if (await submitBtn.first().isVisible({ timeout: 500 }).catch(() => false)) {
-          await submitBtn.first().click();
-        }
         break;
       }
       await page.waitForTimeout(500);
@@ -142,15 +137,13 @@ async function playRoundToScoring(page: Page): Promise<void> {
 
 test.describe('Core Tests', () => {
 
-  // 1. Topic card displays a category from the new word list
-  test('1: topic card shows a specific category name', async ({ page }) => {
+  // 1. Word grid displays with a header
+  test('1: word grid shows header label', async ({ page }) => {
     await createAndStartGame(page);
-    const topicHeader = page.locator('.topic-card .title-md');
-    await expect(topicHeader).toBeVisible();
-    const topic = await topicHeader.textContent();
-    expect(topic).toBeTruthy();
-    expect(topic).not.toBe('Unknown');
-    expect(topic!.length).toBeGreaterThan(2);
+    const header = page.locator('.topic-card .label');
+    await expect(header).toBeVisible();
+    const text = await header.textContent();
+    expect(text).toBe('Word Grid');
   });
 
   // 2. Topic card shows exactly 16 words
@@ -276,8 +269,8 @@ test.describe('Core Tests', () => {
     }
   });
 
-  // 11. Clicking a votable player shows accuse button
-  test('11: clicking a player shows accuse button', async ({ page }) => {
+  // 11. Clicking a votable player casts the vote directly
+  test('11: clicking a player casts vote directly', async ({ page }) => {
     await createAndStartGame(page);
     await advanceToVoting(page);
     const phase = await getPhaseText(page);
@@ -286,8 +279,9 @@ test.describe('Core Tests', () => {
       if (await votable.count() > 0) {
         await votable.first().click();
         await page.waitForTimeout(500);
-        const accuseBtn = page.locator('[id^="btn-submit-vote"]');
-        await expect(accuseBtn).toBeVisible();
+        // Vote is cast directly by tapping — no accuse button needed
+        const voted = page.locator('.player-item.is-voted-player');
+        expect(await voted.count()).toBeGreaterThanOrEqual(1);
       }
     }
   });

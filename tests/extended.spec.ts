@@ -36,7 +36,7 @@ async function submitClueWhenReady(page: Page, clue = 'testing') {
       return;
     }
     // Already past clue giving
-    if (await page.locator('text=Cast Your Vote').isVisible({ timeout: 200 }).catch(() => false)) return;
+    if (await page.locator('text=Tap to Accuse').isVisible({ timeout: 200 }).catch(() => false)) return;
   }
 }
 
@@ -253,7 +253,7 @@ test.describe('Gameplay — Phase Transitions', () => {
 
     // Wait for voting phase (game skips discussion)
     await page.waitForTimeout(5000);
-    const votingHeading = page.locator('text=Cast Your Vote');
+    const votingHeading = page.locator('text=Tap to Accuse');
     if (await votingHeading.isVisible({ timeout: 3000 }).catch(() => false)) {
       // Open recap toggle to see the clue list (rendered as roast items in voting)
       const recapToggle = page.locator('#btn-toggle-clues');
@@ -275,7 +275,7 @@ test.describe('Gameplay — Phase Transitions', () => {
     // Should see voting phase, not discussion
     const body = await page.textContent('body');
     expect(body).not.toContain('Discussion Time');
-    const hasVotingOrLater = body?.includes('Cast Your Vote') || body?.includes('VOTING') || body?.includes('SCORING');
+    const hasVotingOrLater = body?.includes('Tap to Accuse') || body?.includes('VOTING') || body?.includes('SCORING');
     expect(hasVotingOrLater).toBe(true);
   });
 
@@ -285,7 +285,7 @@ test.describe('Gameplay — Phase Transitions', () => {
     await page.waitForTimeout(5000);
 
     // Wait for voting phase (game goes directly from clue giving)
-    const castVote = page.locator('text=Cast Your Vote');
+    const castVote = page.locator('text=Tap to Accuse');
     if (await castVote.isVisible({ timeout: 3000 }).catch(() => false)) {
       const votable = page.locator('.player-item.votable');
       const count = await votable.count();
@@ -304,15 +304,13 @@ test.describe('Gameplay — Phase Transitions', () => {
     await page.waitForTimeout(2000);
 
     // Vote
+    // Tapping a player directly casts the vote
     const votable = page.locator('.player-item.votable');
     if (await votable.count() > 0) {
       await votable.first().click();
-      await page.waitForTimeout(400);
-      const accuseBtn = page.locator('#btn-submit-vote');
-      if (await accuseBtn.isVisible({ timeout: 500 }).catch(() => false)) {
-        await accuseBtn.click();
-      }
     }
+    // Wait for timer to auto-resolve after all votes are in (~2-3s)
+    await page.waitForTimeout(5000);
 
     // Wait for scoring (may go through kiwi guess first)
     for (let i = 0; i < 15; i++) {

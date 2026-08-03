@@ -65,7 +65,7 @@ async function submitClueIfMyTurn(player: PlayerSession): Promise<void> {
       }
     }
     // Check if we've moved past clue phase
-    const voting = await player.page.locator('text=Cast Your Vote').isVisible({ timeout: 200 }).catch(() => false);
+    const voting = await player.page.locator('text=Tap to Accuse').isVisible({ timeout: 200 }).catch(() => false);
     const scoring = await player.page.locator('text=/Round \\d+ Results/').isVisible({ timeout: 200 }).catch(() => false);
     if (voting || scoring) return;
     await player.page.waitForTimeout(500);
@@ -88,12 +88,8 @@ async function voteForPlayer(player: PlayerSession, targetName: string): Promise
         }
       }
       if (!found) {
+        // Tapping a player directly casts the vote
         await votable.first().click();
-      }
-      await player.page.waitForTimeout(300);
-      const submitBtn = player.page.locator('[id^="btn-submit-vote"], #btn-accuse');
-      if (await submitBtn.first().isVisible({ timeout: 500 }).catch(() => false)) {
-        await submitBtn.first().click();
       }
       return;
     }
@@ -109,13 +105,9 @@ async function voteRandom(player: PlayerSession): Promise<void> {
     const votable = player.page.locator('.player-item.votable');
     const count = await votable.count().catch(() => 0);
     if (count > 0) {
+      // Tapping a player directly casts the vote
       const idx = Math.floor(Math.random() * count);
       await votable.nth(idx).click();
-      await player.page.waitForTimeout(300);
-      const submitBtn = player.page.locator('[id^="btn-submit-vote"], #btn-accuse');
-      if (await submitBtn.first().isVisible({ timeout: 500 }).catch(() => false)) {
-        await submitBtn.first().click();
-      }
       return;
     }
     const scoring = await player.page.locator('text=Results').isVisible({ timeout: 200 }).catch(() => false);
@@ -144,7 +136,7 @@ async function playOneRound(players: PlayerSession[], voteTarget?: string): Prom
   await Promise.all(players.map(p => submitClueIfMyTurn(p)));
 
   // 2. Wait for VOTING phase (game now skips discussion)
-  await waitForPhase(host.page, 'Cast Your Vote', 15000);
+  await waitForPhase(host.page, 'Tap to Accuse', 15000);
 
   // 3. VOTING: All players vote
   await host.page.waitForTimeout(1000);

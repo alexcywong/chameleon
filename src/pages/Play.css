@@ -180,3 +180,86 @@
   line-height: 1.4;
   padding-left: 0.1rem;
 }
+
+/* Vote timer */
+.vote-timer {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+.vote-timer-ring {
+  width: 100%;
+  height: 100%;
+  transform: scaleX(-1);
+}
+
+.vote-timer-ring circle {
+  transition: stroke-dasharray 0.9s linear;
+}
+
+.vote-timer-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+
+.vote-timer-urgent .vote-timer-text {
+  color: var(--red-400);
+  animation: pulse-text 1s ease-in-out infinite;
+}
+
+@keyframes pulse-text {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Tie-breaker animation */
+.tie-breaker-overlay {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glow);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.tie-breaker-slots {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.tie-breaker-slot {
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  background: var(--bg-card);
+  border: 2px solid var(--border-subtle);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  transition: all 0.12s ease;
+}
+
+.tie-slot-active {
+  border-color: var(--amber-400);
+  background: rgba(251, 191, 36, 0.15);
+  color: var(--amber-400);
+  transform: scale(1.08);
+}
+
+.tie-slot-chosen {
+  border-color: var(--emerald-400);
+  background: rgba(52, 211, 153, 0.2);
+  color: var(--emerald-400);
+  transform: scale(1.12);
+  box-shadow: 0 0 20px rgba(52, 211, 153, 0.3);
+}
