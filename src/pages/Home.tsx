@@ -113,7 +113,7 @@ export default function Home() {
               onClick={() => setMode('create')}
               id="btn-create-game"
             >
-              🎮 Create Game
+              🚀 Create Game
             </button>
             <button
               className="btn btn-secondary btn-lg btn-full"
